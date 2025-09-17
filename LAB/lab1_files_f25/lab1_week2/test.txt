@@ -1,0 +1,18 @@
+input6
+
+终端打开/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2
+mplayer -slave -input file=./video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/bigbuckbunny320p.mp4
+python3 fifo_test.py
+
+BUTTONS = {
+    'PAUSE': {'pin': 17, 'command': 'pause'},      # Pause/Resume
+    'FORWARD': {'pin': 22, 'command': 'seek 10'},  # Forward 10 seconds
+    'REWIND': {'pin': 23, 'command': 'seek -10'},  # Rewind 10 seconds
+    'QUIT': {'pin': 27, 'command': 'quit'}         # Exit
+}
+
+• fifo_test.py
+• one_button.py
+• four_buttons.py
+• video_control.py
+• start_video.sh

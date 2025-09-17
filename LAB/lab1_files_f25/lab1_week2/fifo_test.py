@@ -8,7 +8,7 @@ import os
 import sys
 
 # FIFO file path
-FIFO_PATH = '/home/pi/video_fifo'
+FIFO_PATH = '/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/video_fifo'
 
 def create_fifo():
     """Create FIFO if it doesn't exist"""
