@@ -14,6 +14,5 @@ python3 /home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/video_control
 sleep 1
 
 # Start mplayer to play video
-# Note: Replace video.mp4 with actual video file path
 echo "Starting video playback..."
 mplayer -slave -input file=./video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/bigbuckbunny320p.mp4
