@@ -19,7 +19,7 @@ WIDTH, HEIGHT = 320, 240
 def init_display():
     if USE_TFT:
         os.putenv('SDL_VIDEODRIVER', 'fbcon')
-        os.putenv('SDL_FBDEV', '/dev/fb')
+        os.putenv('SDL_FBDEV', '/dev/fb1')
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     return screen

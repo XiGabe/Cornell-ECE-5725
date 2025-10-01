@@ -21,7 +21,7 @@ GPIO_QUIT_PIN = 17
 def init_display():
     """Initializes Pygame for the piTFT display."""
     os.putenv('SDL_VIDEODRIVER', 'fbcon')
-    os.putenv('SDL_FBDEV', '/dev/fb0')
+    os.putenv('SDL_FBDEV', '/dev/fb1')
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.mouse.set_visible(False)
@@ -78,7 +78,7 @@ def main():
     screen = init_display()
     clock = pygame.time.Clock()
     
-    radius = 30
+    radius = 25
     balls = [
         {'x': WIDTH * 0.35, 'y': HEIGHT * 0.5, 'vx': 2.5, 'vy': 1.8, 'color': RED},
         {'x': WIDTH * 0.65, 'y': HEIGHT * 0.5, 'vx': -1.8, 'vy': -2.2, 'color': BLUE},
