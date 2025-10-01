@@ -14,7 +14,7 @@ BUTTONS = {
     'TFT_BTN3': 23,   # piTFT
     'TFT_BTN4': 27,   # piTFT
     'EXT_BTN1': 26,   # external button on cobbler
-    'EXT_BTN2': 5     # external button on cobbler
+    'EXT_BTN2': 12     # external button on cobbler
 }
 
 def setup():
@@ -33,7 +33,7 @@ def main():
                     if pin == BUTTONS['TFT_BTN4']:
                         print("Exiting...")
                         return
-                    time.sleep(0.2)
+                    time.sleep(0.5)
             time.sleep(0.05)
     except KeyboardInterrupt:
         print("\nInterrupted")

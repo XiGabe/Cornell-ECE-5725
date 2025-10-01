@@ -7,7 +7,7 @@ import sys
 import time
 import pygame
 
-USE_TFT = False  # set True to force piTFT mode
+USE_TFT = True  # set True to force piTFT mode
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)

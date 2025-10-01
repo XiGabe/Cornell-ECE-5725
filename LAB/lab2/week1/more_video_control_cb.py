@@ -7,15 +7,16 @@ ECE 5725 Lab 2
 import RPi.GPIO as GPIO
 import os
 import time
+import sys
 
-FIFO_PATH = '/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/video_fifo'
+FIFO_PATH = 'video_fifo'
 
 PAUSE_PIN = 17
 FORWARD10_PIN = 22
 REWIND10_PIN = 23
 QUIT_PIN = 27
 FORWARD30_PIN = 26
-REWIND30_PIN = 5
+REWIND30_PIN = 12
 
 def send_command(command: str):
     """Sends a command to the video player via a named pipe."""
@@ -26,27 +27,28 @@ def send_command(command: str):
     except Exception as e:
         print(f"Error sending command: {e}")
 
-def pause_callback():
+def pause_callback(channel):
     print("send pause To Fifo")
     send_command('pause')
 
-def forward10_callback():
+def forward10_callback(channel):
     print("send seek 10 to Fifo")
     send_command('seek 10')
 
-def rewind10_callback():
+def rewind10_callback(channel):
     print("send seek -10 to Fifo")
     send_command('seek -10')
 
-def quit_callback():
+def quit_callback(channel):
     print("send quit to Fifo")
     send_command('quit')
+    sys.exit(0)
 
-def forward30_callback():
+def forward30_callback(channel):
     print("send seek 30 to Fifo")
     send_command('seek 30')
 
-def rewind30_callback():
+def rewind30_callback(channel):
     print("send seek -30 to Fifo")
     send_command('seek -30')
 

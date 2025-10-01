@@ -1,0 +1,21 @@
+python3 six_buttons.py 
+
+mplayer -slave -input file=video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1/lab1_week2/bigbuckbunny320p.mp4
+python3 more_video_control.py
+
+bash start_video_more.sh
+
+mplayer -slave -input file=video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1/lab1_week2/bigbuckbunny320p.mp4
+python3 more_video_control_cb.py
+
+bash start_video_cb.sh
+
+sudo perf_5.10 stat python more_video_control_perf.py
+
+sudo perf_5.10 stat python more_video_control_cb_perf.py
+
+sudo python3 bounce.py
+
+sudo python3 two_bounce.py
+
+sudo python3 two_collide.py

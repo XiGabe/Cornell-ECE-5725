@@ -23,5 +23,5 @@ __pycache__/
 .env
 .local
 config.ini
-.mp4
-.pdf
+*.mp4
+*.pdf

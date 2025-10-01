@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 import os
 import time
 
-FIFO_PATH = '/home/pi/ECE-5725-Evesrything/LAB/lab2/week1'
+FIFO_PATH = "video_fifo"
 # Map buttons to mplayer slave commands
 BUTTONS = {
     'PAUSE':      {'pin': 17, 'command': 'pause'},
@@ -18,7 +18,7 @@ BUTTONS = {
     'QUIT':       {'pin': 27, 'command': 'quit'},
     # External buttons for ±30s
     'FORWARD30':  {'pin': 26, 'command': 'seek 30'},
-    'REWIND30':   {'pin': 5,  'command': 'seek -30'},
+    'REWIND30':   {'pin': 12,  'command': 'seek -30'},
 }
 
 def setup():
@@ -43,7 +43,7 @@ def main():
         while True:
             for name, button in BUTTONS.items():
                 if not GPIO.input(button['pin']):
-                    print(f"{name} pressed -> {button['command']}")
+                    print(f"{name} pressed -> {button['command']}" + '\n')
                     send_command(button['command'])
                     if name == 'QUIT':
                         print("Exiting...")

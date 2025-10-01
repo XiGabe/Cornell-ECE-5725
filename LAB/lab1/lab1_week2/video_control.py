@@ -9,7 +9,7 @@ import os
 import time
 
 # FIFO file path
-FIFO_PATH = '/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/video_fifo'
+FIFO_PATH = "/home/pi/ECE-5725-Everything/LAB/lab1/lab1_week2/video_fifo"
 
 # Button GPIO pin definitions (BCM numbering)
 BUTTONS = {
@@ -64,7 +64,7 @@ def main():
                         return
                     
                     # Prevent button bounce
-                    time.sleep(0.2)
+                    time.sleep(0.5)
             
             # Short sleep to reduce CPU usage
             time.sleep(0.1)

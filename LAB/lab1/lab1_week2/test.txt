@@ -1,7 +1,7 @@
 input6
 
 终端打开/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2
-mplayer -slave -input file=./video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/bigbuckbunny320p.mp4
+mplayer -slave -input file=video_fifo -vo fbdev:/dev/fb1 /home/pi/ECE-5725-Everything/LAB/lab1/lab1_week2/bigbuckbunny320p.mp4
 python3 fifo_test.py
 
 BUTTONS = {

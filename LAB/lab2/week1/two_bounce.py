@@ -7,7 +7,7 @@ import sys
 import time
 import pygame
 
-USE_TFT = False
+USE_TFT = True
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -19,7 +19,7 @@ WIDTH, HEIGHT = 320, 240
 def init_display():
     if USE_TFT:
         os.putenv('SDL_VIDEODRIVER', 'fbcon')
-        os.putenv('SDL_FBDEV', '/dev/fb1')
+        os.putenv('SDL_FBDEV', '/dev/fb')
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     return screen

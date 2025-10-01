@@ -7,9 +7,9 @@ import RPi.GPIO as GPIO
 import os
 import time
 
-FIFO_PATH = '/home/pi/ECE-5725-Everything/LAB/lab1_files_f25/lab1_week2/video_fifo'
+FIFO_PATH = 'video_fifo'
 RUN_SECONDS = 10.0
-SLEEP_SEC = 0.2
+SLEEP_SEC = 0.02
 
 BUTTONS = {
     'PAUSE': 17,
@@ -17,7 +17,7 @@ BUTTONS = {
     'REW10': 23,
     'QUIT':  27,
     'FWD30': 26,
-    'REW30': 5,
+    'REW30': 12,
 }
 
 def setup():
