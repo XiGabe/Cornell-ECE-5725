@@ -20,10 +20,10 @@ MOTOR_R_PINS = {'IN1': 20, 'IN2': 21, 'PWM': 16, 'name': 'Right'}
 # Define Button Pin Structures (Input Pins) - ADJUST ALL PINS AS NEEDED
 # Pins are configured with PULL_UP. Button press (connected to GND) means state goes LOW.
 BUTTON_PINS = {
-    'L_CW': 18,       # Left Servo Clockwise
-    'L_STOP': 23,     # Left Servo Stop
-    'L_CCW': 24,      # Left Servo Counter-Clockwise
-    'R_CW': 25,       # Right Servo Clockwise
+    'L_CW': 17,       # Left Servo Clockwise
+    'L_STOP':22 ,     # Left Servo Stop
+    'L_CCW': 23,      # Left Servo Counter-Clockwise
+    'R_CW': 27,       # Right Servo Clockwise
     'R_STOP': 12,     # Right Servo Stop
     'R_CCW': 13       # Right Servo Counter-Clockwise
 }
