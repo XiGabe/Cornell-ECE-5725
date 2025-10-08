@@ -8,9 +8,9 @@ import threading
 import sys
 
 # --- Configuration ---
-LED_PIN = 26  # Example GPIO Pin (BCM mode) - ADJUST AS NEEDED
-BLINK_FREQUENCY_HZ = 1.0  # Initial frequency: 1 Hz [cite: 145]
-DUTY_CYCLE_PERCENT = 50.0 # Fixed duty cycle: 50% [cite: 145]
+LED_PIN = 26 
+BLINK_FREQUENCY_HZ = 1.0  # Initial frequency: 1 Hz 
+DUTY_CYCLE_PERCENT = 50.0 # Fixed duty cycle: 50% 
 running = True
 
 def led_blinker_thread():
@@ -39,7 +39,7 @@ def led_blinker_thread():
                 GPIO.output(LED_PIN, GPIO.LOW)
                 time.sleep(off_time)
             else:
-                # Frequency = 0 is the special 'quit' entry [cite: 152]
+                # Frequency = 0 is the special 'quit' entry 
                 GPIO.output(LED_PIN, GPIO.LOW) # Ensure LED is off
                 time.sleep(0.1)
                 
@@ -52,16 +52,16 @@ def command_line_input_thread():
     global BLINK_FREQUENCY_HZ
     global running
 
-    print("\nEnter a blink frequency (Hz). Enter 0 to quit the program. [cite: 152]\n")
+    print("\nEnter a blink frequency (Hz). Enter 0 to quit the program. \n")
     
     while running:
         try:
-            # Read input from the command line [cite: 150]
+            # Read input from the command line 
             new_freq_str = input(f"Current Freq: {BLINK_FREQUENCY_HZ:.2f} Hz. Enter New Freq (int): ")
             new_freq = int(new_freq_str)
             
             if new_freq == 0:
-                # Special entry to quit [cite: 152]
+                # Special entry to quit 
                 running = False
                 print("Quit command received. Exiting...")
                 break

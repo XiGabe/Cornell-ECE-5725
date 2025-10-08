@@ -6,12 +6,9 @@ import RPi.GPIO as GPIO
 import time
 
 # --- Configuration ---
-# GPIO Pins (BCM mode) - ADJUST AS NEEDED
 IN1_PIN = 5     # Connected to AIN1
 IN2_PIN = 6     # Connected to AIN2
 PWM_PIN = 26    # Connected to PWMA
-STANDBY_PIN = 17 # Assuming a separate GPIO for STNDBY, or directly to 3.3V/5V.
-                 # If connecting STNDBY directly to 3.3V/5V, this pin is not needed.
 
 # Motor Control Parameters
 PWM_FREQUENCY_HZ = 50 # Typical value for continuous rotation motor 
@@ -34,11 +31,6 @@ def setup_gpio():
     
     # Setup PWM Pin (Output)
     GPIO.setup(PWM_PIN, GPIO.OUT)
-    
-    # Setup Standby Pin (Output, assume we control it for safety)
-    # If STNDBY is hardwired to 3.3V/5V, comment this out.
-    # GPIO.setup(STANDBY_PIN, GPIO.OUT)
-    # GPIO.output(STANDBY_PIN, GPIO.HIGH) # Enable the motor controller
     
     # Create and start PWM instance
     motor_pwm = GPIO.PWM(PWM_PIN, PWM_FREQUENCY_HZ)

@@ -7,7 +7,7 @@ import threading
 import sys
 
 # --- Configuration ---
-LED_PIN = 26  # Example GPIO Pin (BCM mode) - ADJUST AS NEEDED
+LED_PIN = 26 
 INITIAL_FREQUENCY_HZ = 1.0  # Initial frequency: 1 Hz 
 DUTY_CYCLE = 50.0 # Fixed duty cycle: 50% 
 running = True
@@ -22,7 +22,7 @@ def led_pwm_thread():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(LED_PIN, GPIO.OUT)
     
-    # Create a PWM instance: p = GPIO.PWM(GPIO_pin, frequency) 
+    # Create a PWM instance
     pwm_instance = GPIO.PWM(LED_PIN, INITIAL_FREQUENCY_HZ)
     
     # Start PWM: p.start(dc) 
@@ -38,7 +38,7 @@ def update_frequency(new_freq):
     global pwm_instance
     if pwm_instance:
         try:
-            # To change the frequency: p.ChangeFrequency(freq) 
+            # To change the frequency
             pwm_instance.ChangeFrequency(new_freq)
             return True
         except Exception as e:

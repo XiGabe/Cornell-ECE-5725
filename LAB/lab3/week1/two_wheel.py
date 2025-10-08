@@ -43,8 +43,7 @@ def setup_gpio():
         else:
             pwm_R = pwm_instance
 
-    # Assuming STNDBY is connected and enabled (e.g., to 3.3V or a GPIO set HIGH)
-    print("GPIO setup complete. Motors are ready (STNDBY assumed HIGH).")
+    print("GPIO setup complete. Motors are ready.")
 
 def control_motor(motor_pins, direction, speed_dc):
     """Generic function to set the state of a single motor."""
