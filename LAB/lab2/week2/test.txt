@@ -1,0 +1,15 @@
+sudo python3 sdl_v2.py
+
+sudo python3 ../../week1/bounce.py
+
+sudo python3 ../../week1/two_bounce.py
+
+sudo python3 ../../week1/two_collide.py
+
+sudo python3 quit_button.py
+
+sudo python3 screen_coordinates.py
+
+sudo python3 two_button.py
+
+sudo python3 control_two_collide.py
