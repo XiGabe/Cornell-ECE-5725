@@ -44,7 +44,7 @@ def setup_gpio():
 # --- Main Function ---
 def main():
     setup_env()
-    # Note: pygame.init() must be called AFTER environment variables are set [cite: 568, 578]
+    # Note: pygame.init() must be called AFTER environment variables are set 
     pygame.init()
 
     # --- piTFT Touch Driver Initialization (Lab Requirement) ---
@@ -52,37 +52,37 @@ def main():
     if USE_TFT:
         pygame.mouse.set_visible(False)
         try:
-            # Import pigame (which imports pitft_touchscreen) [cite: 416]
+            # Import pigame (which imports pitft_touchscreen) 
             import pigame
-            pitft = pigame.PiTft() # Create piTft object [cite: 463]
+            pitft = pigame.PiTft() # Create piTft object 
         except ImportError:
-            # This will happen if pigame.py/pitft_touchscreen.py are missing [cite: 569]
+            # This will happen if pigame.py/pitft_touchscreen.py are missing 
             pass
 
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     font = pygame.font.Font(None, 28)
     big = pygame.font.Font(None, 36)
 
-    # Quit button (Lab Requirement: single button at the bottom) [cite: 546]
+    # Quit button (Lab Requirement: single button at the bottom) 
     quit_rect = pygame.Rect(0, HEIGHT-40, WIDTH, 40)
     
     last_xy = None
     all_touches = []
     
-    # Code time-out (Lab Requirement: 120 seconds for sufficient data collection) [cite: 533, 534]
+    # Code time-out (Lab Requirement: 120 seconds for sufficient data collection) 
     bailout_deadline = time.time() + 120 
     gpio_available = setup_gpio()
 
     running = True
     
     while running:
-        # Check physical bailout button (Lab Requirement) [cite: 555]
+        # Check physical bailout button (Lab Requirement) 
         if gpio_available and not GPIO.input(BAILOUT_PIN):
             print("Physical bailout button pressed - exiting")
             running = False
             break
 
-        # Update pitft touch events (Required for evdev to Pygame conversion) [cite: 477]
+        # Update pitft touch events (Required for evdev to Pygame conversion) 
         if pitft:
             pitft.update()
 
@@ -96,16 +96,16 @@ def main():
                 # Lab Requirement: Print to console
                 print(f"Touch at {x}, {y}")
                 
-                # Lab Requirement: Collect and display coordinates [cite: 547]
+                # Lab Requirement: Collect and display coordinates 
                 last_xy = (x, y)
                 all_touches.append({'x': x, 'y': y})
 
-                # Check if quit button pressed (Lab Requirement) [cite: 550]
+                # Check if quit button pressed (Lab Requirement) 
                 if quit_rect.collidepoint(x, y):
                     print("Quit button pressed - exiting")
                     running = False
 
-        # Check timeout (Lab Requirement) [cite: 555]
+        # Check timeout (Lab Requirement) 
         if time.time() > bailout_deadline:
             print("Timeout reached - exiting")
             running = False
@@ -113,7 +113,7 @@ def main():
         # --- Drawing ---
         screen.fill(BLACK)
 
-        # Lab Requirement: Display current touch coordinates on screen [cite: 547]
+        # Lab Requirement: Display current touch coordinates on screen 
         if last_xy:
             current_text = big.render(f"Touch at {last_xy[0]}, {last_xy[1]}", True, WHITE)
             screen.blit(current_text, (10, 30)) 
