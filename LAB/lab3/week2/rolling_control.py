@@ -14,22 +14,21 @@ from pygame.locals import *
 
 # Set environment variables for piTFT display and touch functionality
 os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')
-os.putenv('SDL_MOUSEDRV', 'TSLIB')
-os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+os.putenv('SDL_FBDEV', '/dev/fb0')
+os.putenv('SDL_MOUSEDRV','dummy') 
+os.putenv('SDL_MOUSEDEV','/dev/null')
+os.putenv('DISPLAY','')
 
 pygame.init()
 
 # (Lab 2) Create a PiTft object to handle touch events
 pitft = pigame.PiTft()
 
-pygame.mouse.set_visible(False)
-
 # Screen properties
 SCREEN_SIZE = (320, 240)
 screen = pygame.display.set_mode(SCREEN_SIZE)
 BG_COLOR = (0, 0, 0) # Black
-
+pygame.mouse.set_visible(False)
 # --- Font and Color Definitions ---
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -137,9 +136,9 @@ def button_handler_factory(action_func):
 def draw_gui():
     screen.fill(BG_COLOR)
     screen.blit(FONT_BIG.render("Left Motor", True, WHITE), (20, 10))
-    screen.blit(FONT_BIG.render("Right Motor", True, WHITE), (170, 10))
-    screen.blit(FONT_MEDIUM.render(f"Now: {left_motor_state}", True, BLUE), (20, 50))
-    screen.blit(FONT_MEDIUM.render(f"Now: {right_motor_state}", True, BLUE), (170, 50))
+    screen.blit(FONT_BIG.render("Right Motor", True, WHITE), (160, 10))
+    screen.blit(FONT_MEDIUM.render(f"{left_motor_state}", True, BLUE), (20, 50))
+    screen.blit(FONT_MEDIUM.render(f"{right_motor_state}", True, BLUE), (170, 50))
     screen.blit(FONT_MEDIUM.render("History:", True, WHITE), (20, 80))
     screen.blit(FONT_MEDIUM.render("History:", True, WHITE), (170, 80))
     for i, (state, ts) in enumerate(list(left_history)):
@@ -192,7 +191,7 @@ if __name__ == '__main__':
                             print("Resume pressed.")
             
             draw_gui()
-            time.sleep(0.05)
+            time.sleep(0.2)
 
     except Exception as e:
         print(f"\nAn unexpected error occurred: {e}")

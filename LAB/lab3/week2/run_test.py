@@ -12,9 +12,10 @@ import pigame
 from pygame.locals import *
 
 os.putenv('SDL_VIDEODRIVER', 'fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')
-os.putenv('SDL_MOUSEDRV', 'TSLIB')
-os.putenv('SDL_MOUSEDEV', '/dev/input/touchscreen')
+os.putenv('SDL_FBDEV', '/dev/fb0')
+os.putenv('SDL_MOUSEDRV','dummy') 
+os.putenv('SDL_MOUSEDEV','/dev/null')
+os.putenv('DISPLAY','')
 
 pygame.init()
 pitft = pigame.PiTft()
@@ -104,8 +105,8 @@ def draw_gui():
     screen.fill(BG_COLOR)
     screen.blit(FONT_BIG.render("Left Motor", True, WHITE), (20, 10))
     screen.blit(FONT_BIG.render("Right Motor", True, WHITE), (170, 10))
-    screen.blit(FONT_MEDIUM.render(f"Now: {left_motor_state}", True, BLUE), (20, 50))
-    screen.blit(FONT_MEDIUM.render(f"Now: {right_motor_state}", True, BLUE), (170, 50))
+    screen.blit(FONT_MEDIUM.render(f"{left_motor_state}", True, BLUE), (20, 50))
+    screen.blit(FONT_MEDIUM.render(f"{right_motor_state}", True, BLUE), (170, 50))
     for i,(s,t) in enumerate(list(left_history)): screen.blit(FONT_SMALL.render(f"{t}s:{s}",True,WHITE),(20,110+i*20))
     for i,(s,t) in enumerate(list(right_history)): screen.blit(FONT_SMALL.render(f"{t}s:{s}",True,WHITE),(170,110+i*20))
     if program_state=='RUNNING': pygame.draw.rect(screen,RED,BUTTON_RECTS['start']); btn_text=FONT_BIG.render("STOP",True,WHITE)

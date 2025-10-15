@@ -5,7 +5,7 @@ from time import sleep
 #Colours
 WHITE = (255,255,255)
 os.putenv('SDL_VIDEODRV','fbcon')
-os.putenv('SDL_FBDEV', '/dev/fb1')
+os.putenv('SDL_FBDEV', '/dev/fb0')
 os.putenv('SDL_MOUSEDRV','dummy')
 os.putenv('SDL_MOUSEDEV','/dev/null')
 os.putenv('DISPLAY','')
