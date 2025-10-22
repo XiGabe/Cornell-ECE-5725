@@ -41,11 +41,11 @@ int main (int argc, char** argv)
   current_sec = 0;
 
 //  pinMode (23, OUTPUT) ; // wiringPi pin 23 = GPIO pin 13
-  gpioSetMode(13, PI_OUTPUT);  // set GPIO 13 to output
+  gpioSetMode(26, PI_OUTPUT);  // set GPIO 13 to output
 
   while( current_sec < 100 ) {   // run the loop for 100 sec
  //    digitalWrite (23,  PinValue) ; 
-     gpioWrite(13, PinValue);  // Send signal on pin 13
+     gpioWrite(26, PinValue);  // Send signal on pin 13
      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &t, NULL); // delay a bit...
      PinValue = PinValue ^ 1;  // Flip the value of the output pin
      t.tv_nsec += period;   // add in initial period
