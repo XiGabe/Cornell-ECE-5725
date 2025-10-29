@@ -25,3 +25,4 @@ __pycache__/
 config.ini
 *.mp4
 *.pdf
+*.png
