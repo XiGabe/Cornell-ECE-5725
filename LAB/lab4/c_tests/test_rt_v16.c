@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
         int interval = 500000000; /* long delay */
         int PinValue = 0;  // used to toggle output pin
         int i;
-        int GpioPin = 13; // <--- [修改] 定义GPIO引脚（使用13作为示例）
+        int GpioPin = 26; // <--- [修改] 定义GPIO引脚（使用13作为示例）
 
 
        if ( argc>=2 && atoi(argv[1] ) >0 ) { // if positive argument
