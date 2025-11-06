@@ -8,12 +8,12 @@ yoloFastestv2::yoloFastestv2()
     numOutput = 2;
     numThreads = 4;
     numAnchor = 3;
-    numCategory = 6;
+    numCategory = 3;
     nmsThresh = 0.25;
     inputWidth = 352;
     inputHeight = 352;
     //anchor box w h
-    std::vector<float> bias {57.11,24.30, 67.66,38.87, 84.84,65.51, 128.93,51.00, 136.96,83.71, 240.91,107.57};
+    std::vector<float> bias {49.71,66.92, 92.47,105.49, 103.42,212.76, 186.37,267.83, 221.47,149.95, 308.88,277.31};
 
     anchor.assign(bias.begin(), bias.end());
 }
