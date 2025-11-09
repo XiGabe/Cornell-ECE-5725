@@ -13,6 +13,7 @@
 // specific language governing permissions and limitations under the License.
 
 //modified 12-31-2021 Q-engineering
+//modified 11-09-2025 for MJPEG streaming
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -20,6 +21,15 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
+#include <sstream>
 #include "yolo-fastestv2.h"
 
 yoloFastestv2 yoloF2;
@@ -27,6 +37,150 @@ yoloFastestv2 yoloF2;
 const char* class_names[] = {
     "hand"
 };
+
+// Global variables for MJPEG streaming
+std::mutex frame_mutex;
+cv::Mat current_frame;
+std::atomic<bool> streaming_active{true};
+const int HTTP_PORT = 8080;
+
+// MJPEG HTTP server function
+void http_server() {
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        return;
+    }
+
+    // Forcefully attaching socket to the port 8080
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+        perror("setsockopt");
+        return;
+    }
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;  // Listen on all interfaces
+    address.sin_port = htons(HTTP_PORT);
+
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        return;
+    }
+
+    if (listen(server_fd, 3) < 0) {
+        perror("listen");
+        return;
+    }
+
+    std::cout << "MJPEG server started on port " << HTTP_PORT << std::endl;
+    std::cout << "Access: http://localhost:" << HTTP_PORT << "/stream" << std::endl;
+
+    while(streaming_active) {
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
+            if (streaming_active) {
+                perror("accept");
+            }
+            continue;
+        }
+
+        char buffer[2048] = {0};
+        int bytes_received = recv(new_socket, buffer, sizeof(buffer) - 1, 0);
+        if (bytes_received <= 0) {
+            close(new_socket);
+            continue;
+        }
+
+        buffer[bytes_received] = '\0';
+        std::cout << "HTTP Request received: " << std::string(buffer).substr(0, 100) << "..." << std::endl;
+
+        // Parse HTTP request
+        std::string request(buffer);
+        std::string response;
+
+        if (request.find("GET /stream") != std::string::npos) {
+            std::cout << "Starting MJPEG stream for client" << std::endl;
+
+            // MJPEG streaming response
+            response = "HTTP/1.1 200 OK\r\n";
+            response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n";
+            response += "Cache-Control: no-cache\r\n";
+            response += "Connection: close\r\n\r\n";
+
+            if (send(new_socket, response.c_str(), response.length(), 0) < 0) {
+                close(new_socket);
+                continue;
+            }
+
+            // Stream frames
+            int stream_frame_count = 0;
+            while(streaming_active) {
+                cv::Mat frame_copy;
+                {
+                    std::lock_guard<std::mutex> lock(frame_mutex);
+                    if (current_frame.empty()) {
+                        usleep(33000); // ~30 FPS
+                        continue;
+                    }
+                    frame_copy = current_frame.clone();
+                }
+
+                // Encode frame to JPEG
+                std::vector<uchar> jpeg_buffer;
+                std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
+                if (!cv::imencode(".jpg", frame_copy, jpeg_buffer, params)) {
+                    std::cerr << "Failed to encode frame to JPEG" << std::endl;
+                    usleep(33000);
+                    continue;
+                }
+
+                // Send frame
+                std::string frame_header = "--frame\r\n";
+                frame_header += "Content-Type: image/jpeg\r\n";
+                frame_header += "Content-Length: " + std::to_string(jpeg_buffer.size()) + "\r\n\r\n";
+
+                if (send(new_socket, frame_header.c_str(), frame_header.length(), 0) < 0) {
+                    std::cout << "Client disconnected from stream" << std::endl;
+                    break;
+                }
+                if (send(new_socket, jpeg_buffer.data(), jpeg_buffer.size(), 0) < 0) {
+                    std::cout << "Failed to send frame data" << std::endl;
+                    break;
+                }
+                if (send(new_socket, "\r\n", 2, 0) < 0) {
+                    std::cout << "Failed to send frame boundary" << std::endl;
+                    break;
+                }
+
+                stream_frame_count++;
+                if (stream_frame_count % 30 == 0) {
+                    std::cout << "Streamed " << stream_frame_count << " frames" << std::endl;
+                }
+
+                usleep(33000); // ~30 FPS
+            }
+        } else {
+            // Default response
+            response = "HTTP/1.1 200 OK\r\n";
+            response += "Content-Type: text/html\r\n\r\n";
+            response += "<html><body><h1>Hand Detection MJPEG Stream</h1>";
+            response += "<p><a href='/stream'>Click here for video stream</a></p>";
+            response += "<p>Or view directly: <img src='/stream' width='640' height='480' /></p>";
+            response += "<p>Server status: " + std::string(streaming_active ? "Active" : "Inactive") + "</p>";
+            response += "</body></html>";
+            send(new_socket, response.c_str(), response.length(), 0);
+        }
+
+        close(new_socket);
+    }
+
+    close(server_fd);
+}
 
 static void draw_objects(cv::Mat& cvImg, const std::vector<TargetBox>& boxes)
 {
@@ -68,22 +222,55 @@ int main(int argc, char** argv)
     for(i=0;i<16;i++) FPS[i]=0.0;
 
     yoloF2.init(false); //we have no GPU
-	
+
     yoloF2.loadModel("yolo-fastestv2-opt.param","yolo-fastestv2-opt.bin");
 
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "ERROR: Unable to open the camera" << std::endl;
-        return 0;
+        std::cout << "Trying different camera indices..." << std::endl;
+
+        // Try different camera indices
+        for(int i = 1; i < 5; i++) {
+            cap.open(i);
+            if (cap.isOpened()) {
+                std::cout << "Camera found at index " << i << std::endl;
+                break;
+            }
+        }
+
+        if (!cap.isOpened()) {
+            std::cerr << "ERROR: No camera found" << std::endl;
+            return 0;
+        }
     }
 
-    std::cout << "Start grabbing, press ESC on Live window to terminate" << std::endl;
+    // Set camera properties
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    cap.set(cv::CAP_PROP_FPS, 30);
+
+    std::cout << "Camera initialized successfully" << std::endl;
+
+    // Start HTTP server thread
+    std::thread server_thread(http_server);
+
+    std::cout << "Start grabbing, press ESC on terminal to terminate" << std::endl;
+    std::cout << "Camera feed is now streaming to http://localhost:8080" << std::endl;
+
+	int frame_count = 0;
 	while(1){
 //        frame=cv::imread("000139.jpg");  //need to refresh frame before dnn class detection
         cap >> frame;
         if (frame.empty()) {
             std::cerr << "ERROR: Unable to grab from the camera" << std::endl;
-            break;
+            usleep(1000000); // Wait 1 second before retry
+            continue;
+        }
+
+        frame_count++;
+        if (frame_count % 30 == 0) {
+            std::cout << "Processing frame " << frame_count << std::endl;
         }
 
         Tbegin = std::chrono::steady_clock::now();
@@ -98,11 +285,28 @@ int main(int argc, char** argv)
         if(f>0.0) FPS[((Fcnt++)&0x0F)]=1000.0/f;
         for(f=0.0, i=0;i<16;i++){ f+=FPS[i]; }
         putText(frame, cv::format("FPS %0.2f", f/16),cv::Point(10,20),cv::FONT_HERSHEY_SIMPLEX,0.6, cv::Scalar(0, 0, 255));
-        //show outputstd::cerr << "ERROR: Unable to grab from the camera" << std::endl;
-        cv::imshow("Jetson Nano",frame);
-        //cv::imwrite("test.jpg",frame);
+
+        // Update global frame for streaming
+        {
+            std::lock_guard<std::mutex> lock(frame_mutex);
+            current_frame = frame.clone();
+        }
+
+        // Optional: Keep local preview window (comment out if not needed)
+        // cv::imshow("Hand Detection",frame);
+
+        // Check for ESC key to exit (requires OpenCV window)
         char esc = cv::waitKey(5);
         if(esc == 27) break;
+
+        // Also exit if streaming is no longer active
+        if(!streaming_active) break;
 	}
+
+    // Stop streaming and wait for server thread
+    streaming_active = false;
+    server_thread.join();
+
+    std::cout << "Streaming stopped" << std::endl;
     return 0;
 }

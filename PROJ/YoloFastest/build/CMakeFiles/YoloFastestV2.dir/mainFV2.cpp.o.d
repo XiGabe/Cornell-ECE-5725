@@ -273,7 +273,27 @@ CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o: \
  /usr/include/opencv4/opencv2/imgproc/imgproc.hpp \
  /usr/include/opencv4/opencv2/imgproc.hpp \
  /usr/include/opencv4/opencv2/imgproc/segmentation.hpp \
- /usr/include/c++/14/iostream \
+ /usr/include/c++/14/iostream /usr/include/c++/14/thread \
+ /usr/include/c++/14/bits/std_thread.h \
+ /usr/include/c++/14/bits/this_thread_sleep.h /usr/include/c++/14/atomic \
+ /usr/include/aarch64-linux-gnu/sys/socket.h \
+ /usr/include/aarch64-linux-gnu/bits/types/struct_iovec.h \
+ /usr/include/aarch64-linux-gnu/bits/socket.h \
+ /usr/include/aarch64-linux-gnu/bits/socket_type.h \
+ /usr/include/aarch64-linux-gnu/bits/sockaddr.h \
+ /usr/lib/linux/uapi/arm64/asm/socket.h /usr/include/asm-generic/socket.h \
+ /usr/lib/linux/uapi/arm64/asm/sockios.h \
+ /usr/include/asm-generic/sockios.h \
+ /usr/include/aarch64-linux-gnu/bits/types/struct_osockaddr.h \
+ /usr/include/netinet/in.h /usr/include/aarch64-linux-gnu/bits/in.h \
+ /usr/include/arpa/inet.h /usr/include/unistd.h \
+ /usr/include/aarch64-linux-gnu/bits/posix_opt.h \
+ /usr/include/aarch64-linux-gnu/bits/environments.h \
+ /usr/include/aarch64-linux-gnu/bits/confname.h \
+ /usr/include/aarch64-linux-gnu/bits/getopt_posix.h \
+ /usr/include/aarch64-linux-gnu/bits/getopt_core.h \
+ /usr/include/aarch64-linux-gnu/bits/unistd_ext.h \
+ /usr/include/linux/close_range.h \
  /home/pi/ECE-5725-Everything/PROJ/YoloFastest/yolo-fastestv2.h \
  /usr/local/include/ncnn/net.h /usr/local/include/ncnn/blob.h \
  /usr/local/include/ncnn/mat.h /usr/include/c++/14/stdlib.h \

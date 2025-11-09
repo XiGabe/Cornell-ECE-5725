@@ -100,7 +100,6 @@
   /lib/aarch64-linux-gnu/libQt5Gui.so.5 \
   /lib/aarch64-linux-gnu/libQt5Core.so.5 \
   /lib/ld-linux-aarch64.so.1 \
-  /usr/lib/aarch64-linux-gnu/libopencv_imgcodecs.so.4.10.0 \
   /lib/aarch64-linux-gnu/libdc1394.so.25 \
   /lib/aarch64-linux-gnu/libgstbase-1.0.so.0 \
   /lib/aarch64-linux-gnu/libgstreamer-1.0.so.0 \
@@ -117,6 +116,15 @@
   /lib/aarch64-linux-gnu/libswscale.so.8 \
   /lib/aarch64-linux-gnu/libgphoto2.so.6 \
   /lib/aarch64-linux-gnu/libgphoto2_port.so.12 \
+  /lib/aarch64-linux-gnu/libjpeg.so.62 \
+  /lib/aarch64-linux-gnu/libwebp.so.7 \
+  /lib/aarch64-linux-gnu/libpng16.so.16 \
+  /lib/aarch64-linux-gnu/libgdcmMSFF.so.3.0 \
+  /lib/aarch64-linux-gnu/libtiff.so.6 \
+  /lib/aarch64-linux-gnu/libopenjp2.so.7 \
+  /lib/aarch64-linux-gnu/libOpenEXR-3_1.so.30 \
+  /lib/aarch64-linux-gnu/libgdal.so.36 \
+  /lib/aarch64-linux-gnu/libgdcmDSED.so.3.0 \
   /lib/aarch64-linux-gnu/libz.so.1 \
   /lib/aarch64-linux-gnu/libGLX.so.0 \
   /lib/aarch64-linux-gnu/liblapack.so.3 \
@@ -124,7 +132,6 @@
   /lib/aarch64-linux-gnu/libtbb.so.12 \
   /lib/aarch64-linux-gnu/libGLdispatch.so.0 \
   /lib/aarch64-linux-gnu/libGL.so.1 \
-  /lib/aarch64-linux-gnu/libpng16.so.16 \
   /lib/aarch64-linux-gnu/libharfbuzz.so.0 \
   /lib/aarch64-linux-gnu/libmd4c.so.0 \
   /lib/aarch64-linux-gnu/libdouble-conversion.so.3 \
@@ -132,14 +139,6 @@
   /lib/aarch64-linux-gnu/libicuuc.so.76 \
   /lib/aarch64-linux-gnu/libpcre2-16.so.0 \
   /lib/aarch64-linux-gnu/libzstd.so.1 \
-  /lib/aarch64-linux-gnu/libjpeg.so.62 \
-  /lib/aarch64-linux-gnu/libwebp.so.7 \
-  /lib/aarch64-linux-gnu/libgdcmMSFF.so.3.0 \
-  /lib/aarch64-linux-gnu/libtiff.so.6 \
-  /lib/aarch64-linux-gnu/libopenjp2.so.7 \
-  /lib/aarch64-linux-gnu/libOpenEXR-3_1.so.30 \
-  /lib/aarch64-linux-gnu/libgdal.so.36 \
-  /lib/aarch64-linux-gnu/libgdcmDSED.so.3.0 \
   /lib/aarch64-linux-gnu/libraw1394.so.11 \
   /lib/aarch64-linux-gnu/libusb-1.0.so.0 \
   /lib/aarch64-linux-gnu/libgmodule-2.0.so.0 \
@@ -200,10 +199,6 @@
   /lib/aarch64-linux-gnu/libOpenCL.so.1 \
   /lib/aarch64-linux-gnu/libltdl.so.7 \
   /lib/aarch64-linux-gnu/libexif.so.12 \
-  /lib/aarch64-linux-gnu/libgfortran.so.5 \
-  /lib/aarch64-linux-gnu/libfreetype.so.6 \
-  /lib/aarch64-linux-gnu/libgraphite2.so.3 \
-  /lib/aarch64-linux-gnu/libicudata.so.76 \
   /lib/aarch64-linux-gnu/libsharpyuv.so.0 \
   /lib/aarch64-linux-gnu/libgdcmDICT.so.3.0 \
   /lib/aarch64-linux-gnu/libgdcmjpeg8.so.3.0 \
@@ -253,6 +248,10 @@
   /lib/aarch64-linux-gnu/libproj.so.25 \
   /lib/aarch64-linux-gnu/libdfalt.so.0 \
   /lib/aarch64-linux-gnu/libmfhdfalt.so.0 \
+  /lib/aarch64-linux-gnu/libgfortran.so.5 \
+  /lib/aarch64-linux-gnu/libfreetype.so.6 \
+  /lib/aarch64-linux-gnu/libgraphite2.so.3 \
+  /lib/aarch64-linux-gnu/libicudata.so.76 \
   /lib/aarch64-linux-gnu/libsoxr.so.0 \
   /lib/aarch64-linux-gnu/libgio-2.0.so.0 \
   /lib/aarch64-linux-gnu/libgdk_pixbuf-2.0.so.0 \
@@ -578,8 +577,6 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 
 /lib/ld-linux-aarch64.so.1:
 
-/usr/lib/aarch64-linux-gnu/libopencv_imgcodecs.so.4.10.0:
-
 /lib/aarch64-linux-gnu/libdc1394.so.25:
 
 /lib/aarch64-linux-gnu/libgstbase-1.0.so.0:
@@ -612,6 +609,24 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 
 /lib/aarch64-linux-gnu/libgphoto2_port.so.12:
 
+/lib/aarch64-linux-gnu/libjpeg.so.62:
+
+/lib/aarch64-linux-gnu/libwebp.so.7:
+
+/lib/aarch64-linux-gnu/libpng16.so.16:
+
+/lib/aarch64-linux-gnu/libgdcmMSFF.so.3.0:
+
+/lib/aarch64-linux-gnu/libtiff.so.6:
+
+/lib/aarch64-linux-gnu/libopenjp2.so.7:
+
+/lib/aarch64-linux-gnu/libOpenEXR-3_1.so.30:
+
+/lib/aarch64-linux-gnu/libgdal.so.36:
+
+/lib/aarch64-linux-gnu/libgdcmDSED.so.3.0:
+
 /lib/aarch64-linux-gnu/libz.so.1:
 
 /lib/aarch64-linux-gnu/libGLX.so.0:
@@ -626,8 +641,6 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 
 /lib/aarch64-linux-gnu/libGL.so.1:
 
-/lib/aarch64-linux-gnu/libpng16.so.16:
-
 /lib/aarch64-linux-gnu/libharfbuzz.so.0:
 
 /lib/aarch64-linux-gnu/libmd4c.so.0:
@@ -641,22 +654,6 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 /lib/aarch64-linux-gnu/libpcre2-16.so.0:
 
 /lib/aarch64-linux-gnu/libzstd.so.1:
-
-/lib/aarch64-linux-gnu/libjpeg.so.62:
-
-/lib/aarch64-linux-gnu/libwebp.so.7:
-
-/lib/aarch64-linux-gnu/libgdcmMSFF.so.3.0:
-
-/lib/aarch64-linux-gnu/libtiff.so.6:
-
-/lib/aarch64-linux-gnu/libopenjp2.so.7:
-
-/lib/aarch64-linux-gnu/libOpenEXR-3_1.so.30:
-
-/lib/aarch64-linux-gnu/libgdal.so.36:
-
-/lib/aarch64-linux-gnu/libgdcmDSED.so.3.0:
 
 /lib/aarch64-linux-gnu/libraw1394.so.11:
 
@@ -778,14 +775,6 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 
 /lib/aarch64-linux-gnu/libexif.so.12:
 
-/lib/aarch64-linux-gnu/libgfortran.so.5:
-
-/lib/aarch64-linux-gnu/libfreetype.so.6:
-
-/lib/aarch64-linux-gnu/libgraphite2.so.3:
-
-/lib/aarch64-linux-gnu/libicudata.so.76:
-
 /lib/aarch64-linux-gnu/libsharpyuv.so.0:
 
 /lib/aarch64-linux-gnu/libgdcmDICT.so.3.0:
@@ -883,6 +872,14 @@ CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
 /lib/aarch64-linux-gnu/libdfalt.so.0:
 
 /lib/aarch64-linux-gnu/libmfhdfalt.so.0:
+
+/lib/aarch64-linux-gnu/libgfortran.so.5:
+
+/lib/aarch64-linux-gnu/libfreetype.so.6:
+
+/lib/aarch64-linux-gnu/libgraphite2.so.3:
+
+/lib/aarch64-linux-gnu/libicudata.so.76:
 
 /lib/aarch64-linux-gnu/libsoxr.so.0:
 
