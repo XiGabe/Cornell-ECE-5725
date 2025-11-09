@@ -14,13 +14,38 @@ DEVICE="/dev/video0"
 # Get the IP address
 IP=$(hostname -I | awk '{print $1}')
 
-# Start integrated snapshot/system info server (port 5001)
-echo "🖥️ Starting integrated server (port 5001)..."
-python3 mjpg-streamer/mjpg-streamer-experimental/www/snapshot_server.py &
+# Start system info API server (port 5001)
+echo "🖥️ Starting system info API server (port 5001)..."
+
+# 检查端口是否被占用
+if sudo netstat -tlnp | grep -q ":5001"; then
+    echo "⚠️  Port 5001 is in use, killing existing process..."
+    sudo pkill -f "system_info_server.py" 2>/dev/null || true
+    sleep 1
+fi
+
+# 启动系统信息服务器
+nohup python3 mjpg-streamer/system_info_server.py > /tmp/system_info.log 2>&1 &
 SYSINFO_PID=$!
 
-# Wait a moment for system info server to start
-sleep 2
+# 等待服务器启动
+sleep 3
+
+# 检查服务器是否启动成功
+if kill -0 $SYSINFO_PID 2>/dev/null; then
+    echo "✅ System info API server started (PID: $SYSINFO_PID)"
+
+    # 验证API是否工作
+    if curl -s http://localhost:5001/system_info.json > /dev/null; then
+        echo "✅ API endpoint is responding"
+    else
+        echo "⚠️  API server started but endpoint not responding yet"
+    fi
+else
+    echo "❌ System info server failed to start"
+    echo "📋 Check log: tail -f /tmp/system_info.log"
+    SYSINFO_PID=""
+fi
 
 # Start mjpg-streamer with USB camera
 echo "📹 Starting USB camera stream (port $PORT)..."
