@@ -265,15 +265,50 @@ public:
 - ✅ 实时摄像头捕获和FPS统计
 
 ### 6.2 下一步开发重点
-1. **原型1阶段**：手部检测模型训练和基础视觉伺服
-2. **电机控制**：PID控制器实现和电机驱动开发
+1. **原型1阶段**：实现PID控制器和底层电机驱动
+2. **视觉伺服**：连接检测结果到PID控制输入
 3. **两轮底盘**：基础运动控制和闭环验证
 4. **全向轮升级**：运动学建模和三电机协调控制
+
+### 6.3 PID控制系统设计
+基于已实现的手部检测，下一步需要实现连接检测输出到电机控制的完整链路：
+
+#### 3层控制架构
+```cpp
+// 高层视觉PID控制器（20-30Hz）
+class VisualPIDController {
+    Point2f setpoint;           // 目标点(画面中心)
+    PID pid_x, pid_y;           // 分别控制水平/垂直误差
+    Point2f last_target;        // 上次目标位置
+
+    // 核心算法：将画面误差转换为机器人运动指令
+    MotionCommand calculate(Point2f current_target);
+};
+
+// 中层运动学解算（实时）
+class DifferentialKinematics {
+    // 将(vx, vy)转换为左右轮速度
+    WheelSpeeds inverse(float vx, float vy, float wz);
+    // 将轮速转换为机器人速度（用于状态估计）
+    RobotVelocity forward(float wl, float wr);
+};
+
+// 底层电机PID控制器（1kHz）
+class MotorController {
+    PID speed_pid;              // 速度环PID
+    Encoder encoder;            // 编码器反馈
+    PWMGenerator pwm;           // PWM输出
+
+    // 核心功能：精确速度控制
+    void setSpeed(float target_speed);
+    float getCurrentSpeed();    // 从编码器获取实际速度
+};
+```
 
 ## 7. 项目里程碑
 
 ### 近期目标（1-2周）
-- [ ] 完成手部检测模型训练
+- [x] 完成手部检测模型训练
 - [ ] 实现基础PID控制器
 - [ ] 搭建两轮差速底盘
 - [ ] 完成"跟手"功能验证
