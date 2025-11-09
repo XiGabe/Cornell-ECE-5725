@@ -25,7 +25,7 @@
 yoloFastestv2 yoloF2;
 
 const char* class_names[] = {
-    "Paper", "bottle", "can"
+    "hand"
 };
 
 static void draw_objects(cv::Mat& cvImg, const std::vector<TargetBox>& boxes)

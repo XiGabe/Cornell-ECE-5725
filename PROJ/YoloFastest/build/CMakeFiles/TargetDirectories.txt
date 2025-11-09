@@ -1,3 +1,3 @@
-/home/pi/ECE-5725-Everything/PROJ/build/CMakeFiles/rebuild_cache.dir
-/home/pi/ECE-5725-Everything/PROJ/build/CMakeFiles/edit_cache.dir
-/home/pi/ECE-5725-Everything/PROJ/build/CMakeFiles/YoloFastestV2.dir
+/home/pi/ECE-5725-Everything/PROJ/YoloFastest/build/CMakeFiles/YoloFastestV2.dir
+/home/pi/ECE-5725-Everything/PROJ/YoloFastest/build/CMakeFiles/edit_cache.dir
+/home/pi/ECE-5725-Everything/PROJ/YoloFastest/build/CMakeFiles/rebuild_cache.dir

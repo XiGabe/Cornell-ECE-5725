@@ -1,23 +1,24 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "CXX"
-  )
-# The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/pi/ECE-5725-Everything/PROJ/mainFV2.cpp" "/home/pi/ECE-5725-Everything/PROJ/build/CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o"
-  "/home/pi/ECE-5725-Everything/PROJ/yolo-fastestv2.cpp" "/home/pi/ECE-5725-Everything/PROJ/build/CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o"
-  )
-set(CMAKE_CXX_COMPILER_ID "GNU")
-
-# The include file search paths:
-set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "../include"
-  "/usr/local/include/ncnn"
-  "/usr/include/opencv4"
   )
 
-# Targets to which this target links.
-set(CMAKE_TARGET_LINKED_INFO_FILES
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/mainFV2.cpp" "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o" "gcc" "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o.d"
+  "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/yolo-fastestv2.cpp" "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o" "gcc" "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o.d"
+  "" "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/YoloFastestV2" "gcc" "CMakeFiles/YoloFastestV2.dir/link.d"
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_FORWARD_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.
