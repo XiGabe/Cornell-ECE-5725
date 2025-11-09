@@ -8,6 +8,7 @@
   /usr/lib/gcc/aarch64-linux-gnu/14/libgomp.so \
   CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o \
   CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o \
+  CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o \
   /usr/lib/aarch64-linux-gnu/libopencv_stitching.so.4.10.0 \
   /usr/lib/aarch64-linux-gnu/libopencv_alphamat.so.4.10.0 \
   /usr/lib/aarch64-linux-gnu/libopencv_aruco.so.4.10.0 \
@@ -392,6 +393,8 @@
 CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o:
 
 CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o:
+
+CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o:
 
 /usr/lib/aarch64-linux-gnu/libopencv_stitching.so.4.10.0:
 

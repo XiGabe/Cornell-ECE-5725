@@ -4,6 +4,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/YoloFastestV2.dir/link.d"
   "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o"
   "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o.d"
+  "CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o"
+  "CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o.d"
   "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o"
   "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o.d"
 )

@@ -14,7 +14,7 @@ endmacro(use_cxx11)
 
 find_package(OpenCV REQUIRED)                              
 
-set(SOURCES mainFV2.cpp yolo-fastestv2.cpp)
+set(SOURCES mainFV2.cpp yolo-fastestv2.cpp system_monitor.cpp)
 
 set(EXTRA_LIBS ${OpenCV_LIBS} /usr/local/lib/ncnn/libncnn.a)
 

@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/mainFV2.cpp" "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o" "gcc" "CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.o.d"
+  "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/system_monitor.cpp" "CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o" "gcc" "CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o.d"
   "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/yolo-fastestv2.cpp" "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o" "gcc" "CMakeFiles/YoloFastestV2.dir/yolo-fastestv2.cpp.o.d"
   "" "/home/pi/ECE-5725-Everything/PROJ/YoloFastest/YoloFastestV2" "gcc" "CMakeFiles/YoloFastestV2.dir/link.d"
   )

@@ -30,7 +30,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <sstream>
+#include <signal.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+#include <malloc.h>
+#include <fstream>
+#include <sstream>
 #include "yolo-fastestv2.h"
+#include "system_monitor.h"
 
 yoloFastestv2 yoloF2;
 
@@ -43,6 +50,192 @@ std::mutex frame_mutex;
 cv::Mat current_frame;
 std::atomic<bool> streaming_active{true};
 const int HTTP_PORT = 8080;
+
+// System monitor
+SystemMonitor sys_monitor;
+
+// Function to read HTML template
+std::string readHtmlTemplate() {
+    std::ifstream file("/home/pi/ECE-5725-Everything/PROJ/YoloFastest/web_template.html");
+    if (!file.is_open()) {
+        std::cerr << "Could not open HTML template file" << std::endl;
+        return "<html><body><h1>Hand Detection System</h1><img src='/stream' /></body></html>";
+    }
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    file.close();
+    return content;
+}
+
+// Function to generate system info JSON
+std::string getSystemInfoJson() {
+    SystemInfo info = sys_monitor.getSystemInfo();
+    std::ostringstream json;
+    json << "{"
+         << "\"cpu_temp\":" << info.cpu_temp << ","
+         << "\"cpu_freq\":" << info.cpu_freq << ","
+         << "\"cpu_usage\":" << info.cpu_usage << ","
+         << "\"memory_used\":" << info.memory_used << ","
+         << "\"memory_total\":" << info.memory_total << ","
+         << "\"memory_percent\":" << info.memory_percent << ","
+         << "\"uptime\":" << info.uptime << ","
+         << "\"uptime_formatted\":\"" << sys_monitor.formatUptime(info.uptime) << "\""
+         << "}";
+    return json.str();
+}
+
+// Memory cleanup function
+void cleanup_memory() {
+    std::cout << "\n=== Memory Cleanup Started ===" << std::endl;
+
+    // Release OpenCV Mat
+    {
+        std::lock_guard<std::mutex> lock(frame_mutex);
+        if (!current_frame.empty()) {
+            current_frame.release();
+            std::cout << "Released OpenCV frame buffer" << std::endl;
+        }
+    }
+
+    // Note: OpenCV automatic memory management will handle Mat cleanup
+    std::cout << "OpenCV buffers released" << std::endl;
+
+    // System memory cleanup (Linux)
+    std::cout << "Clearing system caches..." << std::endl;
+    system("sync");
+    system("echo 1 > /proc/sys/vm/drop_caches 2>/dev/null");
+    system("echo 2 > /proc/sys/vm/drop_caches 2>/dev/null");
+    system("echo 3 > /proc/sys/vm/drop_caches 2>/dev/null");
+
+    // Return memory to system (if available)
+#ifdef __GLIBC__
+    malloc_trim(0);
+    std::cout << "Trimmed malloc heap" << std::endl;
+#endif
+
+    std::cout << "=== Memory Cleanup Completed ===" << std::endl;
+    std::cout << "Program terminated safely. All resources cleaned up." << std::endl;
+}
+
+// Signal handler for Ctrl+C
+void signal_handler(int signum) {
+    std::cout << "\nReceived signal " << signum << " (Ctrl+C)" << std::endl;
+    std::cout << "Initiating graceful shutdown..." << std::endl;
+
+    // Stop streaming
+    streaming_active = false;
+
+    // Give threads time to finish
+    usleep(500000); // 500ms
+
+    // Clean up memory
+    cleanup_memory();
+
+    exit(signum);
+}
+
+// Function to handle individual HTTP requests
+void handle_http_request(int new_socket) {
+    char buffer[2048] = {0};
+    int bytes_received = recv(new_socket, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_received <= 0) {
+        close(new_socket);
+        return;
+    }
+
+    buffer[bytes_received] = '\0';
+    std::cout << "HTTP Request received: " << std::string(buffer).substr(0, 100) << "..." << std::endl;
+
+    // Parse HTTP request
+    std::string request(buffer);
+    std::string response;
+
+    if (request.find("GET /system-info") != std::string::npos) {
+        // System info JSON API
+        std::string sys_json = getSystemInfoJson();
+        response = "HTTP/1.1 200 OK\r\n";
+        response += "Content-Type: application/json\r\n";
+        response += "Access-Control-Allow-Origin: *\r\n";
+        response += "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n";
+        response += "Access-Control-Allow-Headers: Content-Type\r\n";
+        response += "Cache-Control: no-cache, no-store, must-revalidate\r\n";
+        response += "Content-Length: " + std::to_string(sys_json.length()) + "\r\n\r\n";
+        response += sys_json;
+        send(new_socket, response.c_str(), response.length(), 0);
+    } else if (request.find("GET /stream") != std::string::npos) {
+        std::cout << "Starting MJPEG stream for client" << std::endl;
+
+        // MJPEG streaming response
+        response = "HTTP/1.1 200 OK\r\n";
+        response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n";
+        response += "Cache-Control: no-cache\r\n";
+        response += "Connection: close\r\n\r\n";
+
+        if (send(new_socket, response.c_str(), response.length(), 0) < 0) {
+            close(new_socket);
+            return;
+        }
+
+        // Stream frames
+        int stream_frame_count = 0;
+        while(streaming_active) {
+            cv::Mat frame_copy;
+            {
+                std::lock_guard<std::mutex> lock(frame_mutex);
+                if (current_frame.empty()) {
+                    usleep(33000); // ~30 FPS
+                    continue;
+                }
+                frame_copy = current_frame.clone();
+            }
+
+            // Encode frame to JPEG
+            std::vector<uchar> jpeg_buffer;
+            std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
+            if (!cv::imencode(".jpg", frame_copy, jpeg_buffer, params)) {
+                std::cerr << "Failed to encode frame to JPEG" << std::endl;
+                usleep(33000);
+                continue;
+            }
+
+            // Send frame
+            std::string frame_header = "--frame\r\n";
+            frame_header += "Content-Type: image/jpeg\r\n";
+            frame_header += "Content-Length: " + std::to_string(jpeg_buffer.size()) + "\r\n\r\n";
+
+            if (send(new_socket, frame_header.c_str(), frame_header.length(), 0) < 0) {
+                std::cout << "Client disconnected from stream" << std::endl;
+                break;
+            }
+            if (send(new_socket, jpeg_buffer.data(), jpeg_buffer.size(), 0) < 0) {
+                std::cout << "Failed to send frame data" << std::endl;
+                break;
+            }
+            if (send(new_socket, "\r\n", 2, 0) < 0) {
+                std::cout << "Failed to send frame boundary" << std::endl;
+                break;
+            }
+
+            stream_frame_count++;
+            if (stream_frame_count % 30 == 0) {
+                std::cout << "Streamed " << stream_frame_count << " frames" << std::endl;
+            }
+
+            usleep(33000); // ~30 FPS
+        }
+    } else {
+        // Default response - use beautiful HTML template
+        std::string html_content = readHtmlTemplate();
+        response = "HTTP/1.1 200 OK\r\n";
+        response += "Content-Type: text/html\r\n";
+        response += "Cache-Control: no-cache\r\n";
+        response += "Content-Length: " + std::to_string(html_content.length()) + "\r\n\r\n";
+        response += html_content;
+        send(new_socket, response.c_str(), response.length(), 0);
+    }
+
+    close(new_socket);
+}
 
 // MJPEG HTTP server function
 void http_server() {
@@ -73,13 +266,14 @@ void http_server() {
         return;
     }
 
-    if (listen(server_fd, 3) < 0) {
+    if (listen(server_fd, 10) < 0) {  // Increased backlog
         perror("listen");
         return;
     }
 
     std::cout << "MJPEG server started on port " << HTTP_PORT << std::endl;
-    std::cout << "Access: http://localhost:" << HTTP_PORT << "/stream" << std::endl;
+    std::cout << "Local access: http://localhost:" << HTTP_PORT << std::endl;
+    std::cout << "Network access: http://192.168.1.17:" << HTTP_PORT << std::endl;
 
     while(streaming_active) {
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) {
@@ -89,94 +283,20 @@ void http_server() {
             continue;
         }
 
-        char buffer[2048] = {0};
-        int bytes_received = recv(new_socket, buffer, sizeof(buffer) - 1, 0);
-        if (bytes_received <= 0) {
-            close(new_socket);
-            continue;
-        }
-
-        buffer[bytes_received] = '\0';
-        std::cout << "HTTP Request received: " << std::string(buffer).substr(0, 100) << "..." << std::endl;
-
-        // Parse HTTP request
-        std::string request(buffer);
-        std::string response;
-
-        if (request.find("GET /stream") != std::string::npos) {
-            std::cout << "Starting MJPEG stream for client" << std::endl;
-
-            // MJPEG streaming response
-            response = "HTTP/1.1 200 OK\r\n";
-            response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n";
-            response += "Cache-Control: no-cache\r\n";
-            response += "Connection: close\r\n\r\n";
-
-            if (send(new_socket, response.c_str(), response.length(), 0) < 0) {
-                close(new_socket);
-                continue;
-            }
-
-            // Stream frames
-            int stream_frame_count = 0;
-            while(streaming_active) {
-                cv::Mat frame_copy;
-                {
-                    std::lock_guard<std::mutex> lock(frame_mutex);
-                    if (current_frame.empty()) {
-                        usleep(33000); // ~30 FPS
-                        continue;
-                    }
-                    frame_copy = current_frame.clone();
-                }
-
-                // Encode frame to JPEG
-                std::vector<uchar> jpeg_buffer;
-                std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
-                if (!cv::imencode(".jpg", frame_copy, jpeg_buffer, params)) {
-                    std::cerr << "Failed to encode frame to JPEG" << std::endl;
-                    usleep(33000);
-                    continue;
-                }
-
-                // Send frame
-                std::string frame_header = "--frame\r\n";
-                frame_header += "Content-Type: image/jpeg\r\n";
-                frame_header += "Content-Length: " + std::to_string(jpeg_buffer.size()) + "\r\n\r\n";
-
-                if (send(new_socket, frame_header.c_str(), frame_header.length(), 0) < 0) {
-                    std::cout << "Client disconnected from stream" << std::endl;
-                    break;
-                }
-                if (send(new_socket, jpeg_buffer.data(), jpeg_buffer.size(), 0) < 0) {
-                    std::cout << "Failed to send frame data" << std::endl;
-                    break;
-                }
-                if (send(new_socket, "\r\n", 2, 0) < 0) {
-                    std::cout << "Failed to send frame boundary" << std::endl;
-                    break;
-                }
-
-                stream_frame_count++;
-                if (stream_frame_count % 30 == 0) {
-                    std::cout << "Streamed " << stream_frame_count << " frames" << std::endl;
-                }
-
-                usleep(33000); // ~30 FPS
-            }
+        // Get client IP for logging
+        char client_ip[INET6_ADDRSTRLEN];
+        void *addr_ptr;
+        if (address.sin_family == AF_INET) {
+            addr_ptr = &((struct sockaddr_in*)&address)->sin_addr;
         } else {
-            // Default response
-            response = "HTTP/1.1 200 OK\r\n";
-            response += "Content-Type: text/html\r\n\r\n";
-            response += "<html><body><h1>Hand Detection MJPEG Stream</h1>";
-            response += "<p><a href='/stream'>Click here for video stream</a></p>";
-            response += "<p>Or view directly: <img src='/stream' width='640' height='480' /></p>";
-            response += "<p>Server status: " + std::string(streaming_active ? "Active" : "Inactive") + "</p>";
-            response += "</body></html>";
-            send(new_socket, response.c_str(), response.length(), 0);
+            addr_ptr = &((struct sockaddr_in6*)&address)->sin6_addr;
         }
+        inet_ntop(address.sin_family, addr_ptr, client_ip, INET6_ADDRSTRLEN);
+        std::cout << "Connection from: " << client_ip << std::endl;
 
-        close(new_socket);
+        // Create a new thread to handle this request
+        std::thread request_thread(handle_http_request, new_socket);
+        request_thread.detach();  // Detach to handle independently
     }
 
     close(server_fd);
@@ -212,6 +332,10 @@ static void draw_objects(cv::Mat& cvImg, const std::vector<TargetBox>& boxes)
 
 int main(int argc, char** argv)
 {
+    // Register signal handlers for graceful shutdown
+    signal(SIGINT, signal_handler);
+    signal(SIGTERM, signal_handler);
+
     float f;
     float FPS[16];
     int i,Fcnt=0;
@@ -221,9 +345,12 @@ int main(int argc, char** argv)
 
     for(i=0;i<16;i++) FPS[i]=0.0;
 
+    std::cout << "Initializing YOLO hand detection system..." << std::endl;
+
     yoloF2.init(false); //we have no GPU
 
     yoloF2.loadModel("yolo-fastestv2-opt.param","yolo-fastestv2-opt.bin");
+    std::cout << "Model loaded successfully" << std::endl;
 
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
@@ -308,5 +435,9 @@ int main(int argc, char** argv)
     server_thread.join();
 
     std::cout << "Streaming stopped" << std::endl;
+
+    // Clean up memory on normal exit
+    cleanup_memory();
+
     return 0;
 }

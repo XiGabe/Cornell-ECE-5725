@@ -153,6 +153,30 @@ mainFV2.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/YoloFastestV2.dir/build.make CMakeFiles/YoloFastestV2.dir/mainFV2.cpp.s
 .PHONY : mainFV2.cpp.s
 
+system_monitor.o: system_monitor.cpp.o
+.PHONY : system_monitor.o
+
+# target to build an object file
+system_monitor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/YoloFastestV2.dir/build.make CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.o
+.PHONY : system_monitor.cpp.o
+
+system_monitor.i: system_monitor.cpp.i
+.PHONY : system_monitor.i
+
+# target to preprocess a source file
+system_monitor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/YoloFastestV2.dir/build.make CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.i
+.PHONY : system_monitor.cpp.i
+
+system_monitor.s: system_monitor.cpp.s
+.PHONY : system_monitor.s
+
+# target to generate assembly for a file
+system_monitor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/YoloFastestV2.dir/build.make CMakeFiles/YoloFastestV2.dir/system_monitor.cpp.s
+.PHONY : system_monitor.cpp.s
+
 yolo-fastestv2.o: yolo-fastestv2.cpp.o
 .PHONY : yolo-fastestv2.o
 
@@ -189,6 +213,9 @@ help:
 	@echo "... mainFV2.o"
 	@echo "... mainFV2.i"
 	@echo "... mainFV2.s"
+	@echo "... system_monitor.o"
+	@echo "... system_monitor.i"
+	@echo "... system_monitor.s"
 	@echo "... yolo-fastestv2.o"
 	@echo "... yolo-fastestv2.i"
 	@echo "... yolo-fastestv2.s"

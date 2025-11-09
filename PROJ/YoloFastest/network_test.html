@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Test - 网络测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .info { background: #d1ecf1; border-color: #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #results {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 网络连接测试</h1>
+
+        <div class="info test-item">
+            <h3>当前设备信息</h3>
+            <p><strong>设备类型:</strong> <span id="deviceType">检测中...</span></p>
+            <p><strong>IP地址:</strong> <span id="deviceIP">检测中...</span></p>
+            <p><strong>用户代理:</strong> <span id="userAgent">检测中...</span></p>
+        </div>
+
+        <div class="test-item">
+            <h3>连接测试</h3>
+            <button onclick="testConnection()">测试主页面连接</button>
+            <button onclick="testStream()">测试视频流连接</button>
+            <button onclick="testSystemInfo()">测试系统信息连接</button>
+            <button onclick="testAllTests()">运行全部测试</button>
+        </div>
+
+        <div class="test-item">
+            <h3>测试结果</h3>
+            <div id="results">点击按钮开始测试...</div>
+        </div>
+
+        <div class="info test-item">
+            <h3>📱 手机访问说明</h3>
+            <p><strong>要从此设备访问主页面：</strong></p>
+            <ul>
+                <li>确保手机和树莓派在同一WiFi网络</li>
+                <li>访问 <a href="http://192.168.1.17:8080" target="_blank">http://192.168.1.17:8080</a></li>
+                <li>如果无法访问，请检查网络设置</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function getDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            let deviceType = 'Unknown';
+
+            if (/Mobile|Android|iPhone|iPad/.test(userAgent)) {
+                deviceType = 'Mobile Device';
+            } else if (/Tablet/.test(userAgent)) {
+                deviceType = 'Tablet';
+            } else {
+                deviceType = 'Desktop/Laptop';
+            }
+
+            document.getElementById('deviceType').textContent = deviceType;
+            document.getElementById('userAgent').textContent = userAgent;
+
+            // 获取设备IP（需要外部API）
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('deviceIP').textContent = data.ip + ' (外部IP)';
+                })
+                .catch(() => {
+                    document.getElementById('deviceIP').textContent = '无法获取外部IP';
+                });
+        }
+
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            results.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function testConnection() {
+            log('🔍 测试主页面连接...');
+            try {
+                const response = await fetch('/');
+                if (response.ok) {
+                    log('✅ 主页面连接成功', 'success');
+                    const text = await response.text();
+                    if (text.includes('Hand Detection System')) {
+                        log('✅ 页面内容验证成功', 'success');
+                    } else {
+                        log('⚠️ 页面内容可能不完整', 'error');
+                    }
+                } else {
+                    log(`❌ 主页面连接失败: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 主页面连接错误: ${error.message}`, 'error');
+                log('💡 可能原因：\n- 服务器未启动\n- 网络连接问题\n- 防火墙阻止', 'info');
+            }
+        }
+
+        async function testStream() {
+            log('🎥 测试视频流连接...');
+            try {
+                const response = await fetch('/stream');
+                if (response.ok) {
+                    log('✅ 视频流连接成功', 'success');
+                } else {
+                    log(`❌ 视频流连接失败: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 视频流连接错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSystemInfo() {
+            log('📊 测试系统信息连接...');
+            try {
+                const response = await fetch('/system-info');
+                if (response.ok) {
+                    const data = await response.json();
+                    log('✅ 系统信息连接成功', 'success');
+                    log(`📈 系统数据: CPU温度 ${data.cpu_temp}°C, 内存使用 ${data.memory_percent.toFixed(1)}%`, 'info');
+                } else {
+                    log(`❌ 系统信息连接失败: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 系统信息连接错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllTests() {
+            log('🚀 开始完整测试序列...');
+            await testConnection();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testSystemInfo();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await testStream();
+            log('✨ 测试完成！', 'success');
+        }
+
+        // 页面加载时获取设备信息
+        getDeviceInfo();
+
+        // 自动运行基础测试
+        setTimeout(() => {
+            log('🔧 页面加载完成，开始自动测试...');
+            testAllTests();
+        }, 1000);
+    </script>
+</body>
+</html>
