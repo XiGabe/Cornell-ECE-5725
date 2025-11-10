@@ -51,6 +51,10 @@ cv::Mat current_frame;
 std::atomic<bool> streaming_active{true};
 const int HTTP_PORT = 8080;
 
+// JPEG buffer for efficient streaming
+std::mutex jpeg_mutex;
+std::vector<uchar> global_jpeg_buffer;
+
 // System monitor
 SystemMonitor sys_monitor;
 
@@ -95,6 +99,13 @@ void cleanup_memory() {
             current_frame.release();
             std::cout << "Released OpenCV frame buffer" << std::endl;
         }
+    }
+
+    // Clear JPEG buffer
+    {
+        std::lock_guard<std::mutex> lock(jpeg_mutex);
+        global_jpeg_buffer.clear();
+        std::cout << "Cleared JPEG buffer" << std::endl;
     }
 
     // Note: OpenCV automatic memory management will handle Mat cleanup
@@ -176,38 +187,31 @@ void handle_http_request(int new_socket) {
             return;
         }
 
-        // Stream frames
+        // Stream frames efficiently - use pre-encoded JPEG
         int stream_frame_count = 0;
         while(streaming_active) {
-            cv::Mat frame_copy;
+            std::vector<uchar> jpeg_buffer_copy;
             {
-                std::lock_guard<std::mutex> lock(frame_mutex);
-                if (current_frame.empty()) {
-                    usleep(33000); // ~30 FPS
+                // Get the latest JPEG data (already encoded by main thread)
+                std::lock_guard<std::mutex> lock(jpeg_mutex);
+                if (global_jpeg_buffer.empty()) {
+                    usleep(33000); // Wait for first frame to be encoded
                     continue;
                 }
-                frame_copy = current_frame.clone();
+                jpeg_buffer_copy = global_jpeg_buffer;
             }
 
-            // Encode frame to JPEG
-            std::vector<uchar> jpeg_buffer;
-            std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
-            if (!cv::imencode(".jpg", frame_copy, jpeg_buffer, params)) {
-                std::cerr << "Failed to encode frame to JPEG" << std::endl;
-                usleep(33000);
-                continue;
-            }
-
-            // Send frame
+            // Send frame header
             std::string frame_header = "--frame\r\n";
             frame_header += "Content-Type: image/jpeg\r\n";
-            frame_header += "Content-Length: " + std::to_string(jpeg_buffer.size()) + "\r\n\r\n";
+            frame_header += "Content-Length: " + std::to_string(jpeg_buffer_copy.size()) + "\r\n\r\n";
 
+            // Send data efficiently
             if (send(new_socket, frame_header.c_str(), frame_header.length(), 0) < 0) {
                 std::cout << "Client disconnected from stream" << std::endl;
                 break;
             }
-            if (send(new_socket, jpeg_buffer.data(), jpeg_buffer.size(), 0) < 0) {
+            if (send(new_socket, jpeg_buffer_copy.data(), jpeg_buffer_copy.size(), 0) < 0) {
                 std::cout << "Failed to send frame data" << std::endl;
                 break;
             }
@@ -417,6 +421,16 @@ int main(int argc, char** argv)
         {
             std::lock_guard<std::mutex> lock(frame_mutex);
             current_frame = frame.clone();
+        }
+
+        // Encode JPEG once for all streaming clients
+        {
+            std::vector<uchar> temp_jpeg_buffer;
+            std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
+            cv::imencode(".jpg", frame, temp_jpeg_buffer, params);
+
+            std::lock_guard<std::mutex> lock(jpeg_mutex);
+            global_jpeg_buffer = std::move(temp_jpeg_buffer);
         }
 
         // Optional: Keep local preview window (comment out if not needed)
