@@ -38,6 +38,9 @@ int yoloFastestv2::init(const bool use_vulkan_compute)
     //net.opt.use_shader_pack8 = false;
     //net.opt.use_image_storage = false;
 
+    // Enable multi-threading for optimal performance
+    net.opt.num_threads = numThreads;
+
     return 0;
 }
 
@@ -192,7 +195,7 @@ int yoloFastestv2::detection(const cv::Mat srcImg, std::vector<TargetBox> &dstBo
 
     //creat extractor
     ncnn::Extractor ex = net.create_extractor();
-    //ex.set_num_threads(numThreads);
+    // Note: NCNN threading is set at network level in init() function
 
     //set input tensor
     ex.input("input.1", inputImg);
