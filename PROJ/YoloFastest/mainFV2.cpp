@@ -36,8 +36,12 @@
 #include <malloc.h>
 #include <fstream>
 #include <sstream>
+// #include <iomanip>  // 暂时不需要
+// #include <cmath>     // 暂时不需要
 #include "yolo-fastestv2.h"
 #include "system_monitor.h"
+#include "motor_control.h"
+#include "visual_servo.h"
 
 yoloFastestv2 yoloF2;
 
@@ -57,6 +61,9 @@ std::vector<uchar> global_jpeg_buffer;
 
 // System monitor
 SystemMonitor sys_monitor;
+
+// Visual servo controller
+VisualServoController visual_servo;
 
 // Function to read HTML template
 std::string readHtmlTemplate() {
@@ -91,6 +98,10 @@ std::string getSystemInfoJson() {
 // Memory cleanup function
 void cleanup_memory() {
     std::cout << "\n=== Memory Cleanup Started ===" << std::endl;
+
+    // 清理视觉伺服控制器 (包括电机控制)
+    std::cout << "Cleaning up visual servo controller..." << std::endl;
+    // visual_servo 析构函数会自动调用 cleanup_motors()
 
     // Release OpenCV Mat
     {
@@ -356,6 +367,12 @@ int main(int argc, char** argv)
     yoloF2.loadModel("yolo-fastestv2-opt.param","yolo-fastestv2-opt.bin");
     std::cout << "Model loaded successfully" << std::endl;
 
+    // 初始化视觉伺服控制器
+    if (visual_servo.initialize() != 0) {
+        std::cerr << "Failed to initialize visual servo controller!" << std::endl;
+        return -1;
+    }
+
     cv::VideoCapture cap(0);
     if (!cap.isOpened()) {
         std::cerr << "ERROR: Unable to open the camera" << std::endl;
@@ -410,6 +427,9 @@ int main(int argc, char** argv)
         yoloF2.detection(frame, boxes, 0.4);
         draw_objects(frame, boxes);
         Tend = std::chrono::steady_clock::now();
+
+        // 基于YOLO检测结果的视觉伺服控制
+        visual_servo.process_detection(boxes);
 
         //calculate frame rate
         f = std::chrono::duration_cast <std::chrono::milliseconds> (Tend - Tbegin).count();
