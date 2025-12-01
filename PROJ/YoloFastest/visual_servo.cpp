@@ -9,8 +9,8 @@ VisualServoController::VisualServoController()
       dead_zone_x(50.0f), dead_zone_y(50.0f),
       last_error_x(0.0f), last_error_y(0.0f),
       integral_x(0.0f), integral_y(0.0f),
-      kp_linear(1.0f), ki_linear(0.1f), kd_linear(0.05f),
-      kp_angular(1.5f), ki_angular(0.0f), kd_angular(0.1f) {
+      kp_linear(0.8f), ki_linear(0.05f), kd_linear(0.1f),
+      kp_angular(1.0f), ki_angular(0.0f), kd_angular(0.15f) {
 }
 
 VisualServoController::~VisualServoController() {
@@ -26,11 +26,11 @@ int VisualServoController::initialize() {
         return -1;
     }
 
-    // 设置PID参数
-    set_pid_parameters(1.0f, 0.1f, 0.05f, 1.5f, 0.0f, 0.1f);
+    // 设置PID参数（优化后的参数）
+    set_pid_parameters(0.8f, 0.05f, 0.1f, 1.0f, 0.0f, 0.15f);
 
-    // 设置死区
-    set_dead_zone(50.0f, 50.0f);
+    // 设置死区（增大死区以减少微小抖动）
+    set_dead_zone(30.0f, 40.0f);
 
     initialized = true;
     std::cout << "Visual Servo Controller initialized successfully!" << std::endl;
@@ -120,17 +120,21 @@ void VisualServoController::track_target(float target_center_x, float target_cen
     // 计算PID控制输出
     // X方向（左右运动）
     integral_x += error_x;
+    // 限制积分饱和
+    integral_x = std::max(-50.0f, std::min(50.0f, integral_x));
     float derivative_x = error_x - last_error_x;
     float control_x = kp_angular * error_x + ki_angular * integral_x + kd_angular * derivative_x;
 
     // Y方向（前后运动）和距离控制
     integral_y += error_y;
+    // 限制积分饱和
+    integral_y = std::max(-50.0f, std::min(50.0f, integral_y));
     float derivative_y = error_y - last_error_y;
     float control_y = kp_linear * error_y + ki_linear * integral_y + kd_linear * derivative_y;
 
     // 目标大小控制（距离远近）
     float size_error = 150.0f - target_size; // 期望目标大小为150像素
-    float size_control = kp_linear * size_error * 0.5f; // 距离控制
+    float size_control = kp_linear * size_error * 0.8f; // 增加距离控制权重
 
     // 保存当前误差
     last_error_x = error_x;
@@ -140,14 +144,31 @@ void VisualServoController::track_target(float target_center_x, float target_cen
     float left_speed = 0.0f;
     float right_speed = 0.0f;
 
-    // 基础前进/后退速度（基于目标大小和Y位置）
-    float base_speed = std::max(0.0f, size_control);
-    if (control_y < -10) {
+    // 重新设计速度计算逻辑
+    float base_speed = 0.0f;
+
+    // 基于Y位置的速度控制（增强响应）
+    if (control_y < -8) {
         // 目标在上方，前进
-        base_speed += std::abs(control_y) * 0.3f;
-    } else if (control_y > 10) {
-        // 目标在下方，后退（可选）
-        base_speed = -std::abs(control_y) * 0.2f;
+        base_speed = std::abs(control_y) * 0.6f; // 增加前进速度系数
+    } else if (control_y > 8) {
+        // 目标在下方，后退
+        base_speed = -std::abs(control_y) * 0.7f; // 增加后退速度系数
+    }
+
+    // 结合目标大小控制
+    if (size_error > 20) { // 目标太小，需要前进靠近
+        base_speed += std::abs(size_control);
+    } else if (size_error < -20) { // 目标太大，需要后退远离
+        base_speed -= std::abs(size_control);
+    } else {
+        // 在合理距离范围内，使用size_control微调
+        base_speed += size_control * 0.5f;
+    }
+
+    // 确保最小移动速度（避免过慢）
+    if (std::abs(base_speed) > 5 && std::abs(base_speed) < 25) {
+        base_speed = base_speed > 0 ? 25.0f : -25.0f;
     }
 
     // 左右转向控制
@@ -163,29 +184,46 @@ void VisualServoController::track_target(float target_center_x, float target_cen
         right_speed = base_speed - turn_speed;
     }
 
-    // 限制速度范围
-    left_speed = std::max(-60.0f, std::min(80.0f, left_speed));
-    right_speed = std::max(-60.0f, std::min(80.0f, right_speed));
+    // 限制速度范围（提高后退最大速度）
+    left_speed = std::max(-50.0f, std::min(60.0f, left_speed));
+    right_speed = std::max(-50.0f, std::min(60.0f, right_speed));
 
-    // 执行电机控制
-    if (std::abs(left_speed) > 1.0f || std::abs(right_speed) > 1.0f) {
-        if (base_speed > 0) {
-            // 前进转向
-            move_forward(std::max(std::abs(left_speed), std::abs(right_speed)));
-            if (turn_speed > 5) {
-                turn_right(30.0f);
-            } else if (turn_speed < -5) {
-                turn_left(30.0f);
+    // 执行电机控制 - 优化后的差速控制逻辑
+    if (std::abs(left_speed) > 3.0f || std::abs(right_speed) > 3.0f) {
+        if (base_speed > 5) {
+            // 前进时使用差速转向，避免指令冲突
+            float max_forward_speed = std::max(std::abs(left_speed), std::abs(right_speed));
+            move_forward(max_forward_speed);
+
+            // 如果需要转向，调整左右电机速度差而不是额外调用转向函数
+            if (std::abs(turn_speed) > 3) {
+                // 计算转向比例
+                float turn_ratio = std::abs(turn_speed) / 100.0f; // 归一化转向强度
+                turn_ratio = std::min(0.4f, turn_ratio); // 限制转向强度最大40%
+
+                if (turn_speed > 0) {
+                    // 右转：左电机保持速度，右电机减速
+                    set_motor_speeds(max_forward_speed, max_forward_speed * (1.0f - turn_ratio));
+                } else {
+                    // 左转：右电机保持速度，左电机减速
+                    set_motor_speeds(max_forward_speed * (1.0f - turn_ratio), max_forward_speed);
+                }
+            } else {
+                // 直线前进
+                set_motor_speeds(max_forward_speed, max_forward_speed);
             }
-        } else if (base_speed < 0) {
+        } else if (base_speed < -5) {
             // 后退
             move_backward(std::abs(base_speed));
         } else {
-            // 原地转向
-            if (turn_speed > 10) {
-                rotate_right(25.0f);
-            } else if (turn_speed < -10) {
-                rotate_left(25.0f);
+            // 原地转向（降低转向速度）
+            if (std::abs(turn_speed) > 8) {
+                float rotate_speed = std::min(20.0f, std::abs(turn_speed) * 0.3f);
+                if (turn_speed > 0) {
+                    rotate_right(rotate_speed);
+                } else {
+                    rotate_left(rotate_speed);
+                }
             }
         }
 
