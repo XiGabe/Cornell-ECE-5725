@@ -393,10 +393,20 @@ int main(int argc, char** argv)
         }
     }
 
-    // Set camera properties
+    // 优化的摄像头设置
     cap.set(cv::CAP_PROP_FRAME_WIDTH, 640);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
     cap.set(cv::CAP_PROP_FPS, 30);
+
+    // 关键优化：减少缓冲区延迟
+    cap.set(cv::CAP_PROP_BUFFERSIZE, 1);  // 最小缓冲区
+    cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M','J','P','G'));  // 尝试MJPEG格式
+
+    // 如果MJPEG不支持，回退到YUYV但优化其他参数
+    if (cap.get(cv::CAP_PROP_FOURCC) != cv::VideoWriter::fourcc('M','J','P','G')) {
+        std::cout << "MJPEG not supported, using YUYV format" << std::endl;
+        cap.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('Y','U','Y','V'));
+    }
 
     std::cout << "Camera initialized successfully" << std::endl;
 
@@ -443,11 +453,16 @@ int main(int argc, char** argv)
             current_frame = frame.clone();
         }
 
-        // Encode JPEG once for all streaming clients
+        // Encode JPEG once for all streaming clients - optimized
         {
             std::vector<uchar> temp_jpeg_buffer;
-            std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 85};
-            cv::imencode(".jpg", frame, temp_jpeg_buffer, params);
+            std::vector<int> params = {cv::IMWRITE_JPEG_QUALITY, 75, cv::IMWRITE_JPEG_OPTIMIZE, 1};
+
+            // 使用更小的ROI区域编码以减少处理时间
+            cv::Rect roi(0, 0, frame.cols, frame.rows);
+            cv::Mat jpeg_frame = frame(roi);
+
+            cv::imencode(".jpg", jpeg_frame, temp_jpeg_buffer, params);
 
             std::lock_guard<std::mutex> lock(jpeg_mutex);
             global_jpeg_buffer = std::move(temp_jpeg_buffer);

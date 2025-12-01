@@ -200,7 +200,7 @@ int yoloFastestv2::detection(const cv::Mat srcImg, std::vector<TargetBox> &dstBo
     //set input tensor
     ex.input("input.1", inputImg);
 
-    //forward
+    //forward - pre-allocated for speed
     ncnn::Mat out[2];
     ex.extract("770", out[0]); //22x22
     ex.extract("772", out[1]); //11x11
