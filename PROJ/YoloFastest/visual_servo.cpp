@@ -9,7 +9,7 @@ VisualServoController::VisualServoController()
       dead_zone_x(50.0f), dead_zone_y(50.0f),
       last_error_x(0.0f), last_error_y(0.0f),
       integral_x(0.0f), integral_y(0.0f),
-      kp_linear(0.8f), ki_linear(0.05f), kd_linear(0.1f),
+      kp_linear(1.0f), ki_linear(0.08f), kd_linear(0.12f),
       kp_angular(1.0f), ki_angular(0.0f), kd_angular(0.15f) {
 }
 
@@ -26,8 +26,8 @@ int VisualServoController::initialize() {
         return -1;
     }
 
-    // 设置PID参数（优化后的参数）
-    set_pid_parameters(0.8f, 0.05f, 0.1f, 1.0f, 0.0f, 0.15f);
+    // 设置PID参数（优化前进响应）
+    set_pid_parameters(1.0f, 0.08f, 0.12f, 1.0f, 0.0f, 0.15f);
 
     // 设置死区（增大死区以减少微小抖动）
     set_dead_zone(30.0f, 40.0f);
@@ -148,27 +148,35 @@ void VisualServoController::track_target(float target_center_x, float target_cen
     float base_speed = 0.0f;
 
     // 基于Y位置的速度控制（增强响应）
-    if (control_y < -8) {
-        // 目标在上方，前进
-        base_speed = std::abs(control_y) * 0.6f; // 增加前进速度系数
+    if (control_y < -5) {
+        // 目标在上方，前进 - 提高响应性
+        base_speed = std::abs(control_y) * 0.9f; // 大幅增加前进速度系数
     } else if (control_y > 8) {
         // 目标在下方，后退
         base_speed = -std::abs(control_y) * 0.7f; // 增加后退速度系数
     }
 
-    // 结合目标大小控制
-    if (size_error > 20) { // 目标太小，需要前进靠近
-        base_speed += std::abs(size_control);
-    } else if (size_error < -20) { // 目标太大，需要后退远离
-        base_speed -= std::abs(size_control);
+    // 结合目标大小控制 - 增强前进响应
+    if (size_error > 15) { // 降低阈值，更积极前进
+        base_speed += std::abs(size_control) * 1.2f; // 增加前进权重
+    } else if (size_error < -25) { // 目标太大，需要后退远离
+        base_speed -= std::abs(size_control) * 0.8f; // 减少后退权重
     } else {
         // 在合理距离范围内，使用size_control微调
-        base_speed += size_control * 0.5f;
+        if (base_speed > 0) { // 如果已经在前进，增强前进
+            base_speed += std::abs(size_control) * 0.7f;
+        } else {
+            base_speed += size_control * 0.3f; // 后退时减少影响
+        }
     }
 
-    // 确保最小移动速度（避免过慢）
-    if (std::abs(base_speed) > 5 && std::abs(base_speed) < 25) {
-        base_speed = base_speed > 0 ? 25.0f : -25.0f;
+    // 确保最小移动速度（避免过慢）- 更积极的前进保证
+    if (std::abs(base_speed) > 3) { // 降低触发阈值
+        if (base_speed > 0 && base_speed < 30) { // 前进时最小速度更高
+            base_speed = 30.0f;
+        } else if (base_speed < 0 && std::abs(base_speed) < 25) { // 后退保持原逻辑
+            base_speed = -25.0f;
+        }
     }
 
     // 左右转向控制
