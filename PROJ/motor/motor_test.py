@@ -9,10 +9,12 @@ TEST_SPEED_DC = 95.0  # 测试速度设为 80%，防止太快
 STOP_SPEED_DC = 0.0
 
 # 左电机引脚
-MOTOR_L_PINS = {'IN1': 5, 'IN2': 6, 'PWM': 26, 'name': 'Left'}
+MOTOR_L_PINS = {'IN1': 17, 'IN2': 6, 'PWM': 26, 'name': 'Left'}
 # 右电机引脚
-MOTOR_R_PINS = {'IN1': 20, 'IN2': 12, 'PWM': 16, 'name': 'Right'}
-
+MOTOR_R_PINS = {'IN1': 22, 'IN2': 27, 'PWM': 23, 'name': 'Right'}
+#17 6 26
+#20 12 16 ?有问题。电机好像坏了
+#22 27 23
 # 全局 PWM 对象
 pwm_L = None
 pwm_R = None
