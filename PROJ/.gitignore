@@ -1,0 +1,102 @@
+# Build artifacts
+bin/build/
+*.o
+*.a
+*.so
+*.dylib
+
+# Executables
+bin/main
+bin/main.exe
+bin/test_omni
+bin/test_omni.exe
+mainFV2
+mainFV2.exe
+test_omni
+test_omni.exe
+
+# Compiled libraries
+*.lib
+*.obj
+
+# IDE and editor files
+.vscode/
+.claude/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+*.cmake
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Profiling
+*.gcov
+*.gcda
+*.gcno
+coverage/
+lcov.info
+
+# Documentation build
+docs/html/
+docs/latex/
+*.dox
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+.tmp/
+*.pid
+
+# Core dumps
+core
+core.*
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Model files (if too large for git)
+*.bin
+*.param
+*.onnx
+*.trt
+*.engine
+
+# Video and image files (samples)
+*.mp4
+*.avi
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.bmp
+
+# Configuration files with sensitive data
+config.local.json
+.env
+.env.local
+.env.*.local
+
+# System files
+*.lgd-*
+
+# Backup files
+*.bak
+*.backup
+*.old

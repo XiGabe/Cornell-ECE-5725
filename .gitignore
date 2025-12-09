@@ -27,4 +27,5 @@ config.ini
 *.pdf
 *.png
 *.xlsx
+*.jpeg
 *.jpg
