@@ -7,11 +7,11 @@
 VisualServoController::VisualServoController()
     : initialized(false), frame_width(640), frame_height(480),
       target_x(320.0f), target_y(240.0f),
-      dead_zone_x(50.0f), dead_zone_y(50.0f),
+      dead_zone_x(15.0f), dead_zone_y(35.0f),
       last_error_x(0.0f), last_error_y(0.0f),
       integral_x(0.0f), integral_y(0.0f),
-      kp_linear(1.0f), ki_linear(0.08f), kd_linear(0.12f),
-      kp_angular(1.0f), ki_angular(0.0f), kd_angular(0.15f),
+      kp_linear(2.0f), ki_linear(0.15f), kd_linear(0.25f),
+      kp_angular(1.5f), ki_angular(0.0f), kd_angular(0.3f),
       is_hand_open(true), is_hand_closed(false), last_hand_size(0.0f),
       gesture_threshold(0.3f) {
 }
@@ -29,11 +29,11 @@ int VisualServoController::initialize() {
         return -1;
     }
 
-    // 设置PID参数（优化前进响应）
-    set_pid_parameters(1.0f, 0.08f, 0.12f, 1.0f, 0.0f, 0.15f);
+    // 设置PID参数（极限速度响应）
+    set_pid_parameters(2.0f, 0.15f, 0.25f, 1.5f, 0.0f, 0.3f);
 
-    // 设置死区（减小死区增加灵敏度）
-    set_dead_zone(15.0f, 20.0f);
+    // 设置死区（增大Y方向死区减少后方敏感度）
+    set_dead_zone(15.0f, 35.0f);
 
     initialized = true;
     std::cout << "Visual Servo Controller initialized successfully!" << std::endl;
@@ -72,12 +72,31 @@ void VisualServoController::process_detection(const std::vector<TargetBox>& boxe
         }
     }
 
-    if (best_target && max_confidence > 0.5f) { // 置信度阈值
+    if (best_target && max_confidence > 0.7f) { // 提高置信度阈值
         // 计算目标中心位置
         float center_x = (best_target->x1 + best_target->x2) / 2.0f;
         float center_y = (best_target->y1 + best_target->y2) / 2.0f;
         float target_size = std::max<float>(best_target->x2 - best_target->x1,
                                            best_target->y2 - best_target->y1);
+
+        // 手部尺寸过滤 - 扩大范围以适应不同距离和角度
+        float min_hand_size = 20.0f;   // 更小最小手部尺寸
+        float max_hand_size = 300.0f;  // 更大最大手部尺寸
+
+        if (target_size < min_hand_size || target_size > max_hand_size) {
+            std::cout << "目标尺寸超出范围: " << target_size << " (有效范围: " << min_hand_size << "-" << max_hand_size << ")" << std::endl;
+            stop_motion();
+            return;
+        }
+
+        // 手部位置过滤 - 手部通常在画面下半部分（因为相机较高）
+        if (center_y > frame_height * 0.9f) {
+            std::cout << "目标位置过高，可能不是手部" << std::endl;
+            stop_motion();
+            return;
+        }
+
+        // 直接跟踪目标，移除连续性验证以实现即时响应
 
         // 跟踪目标
         track_target(center_x, center_y, target_size);
@@ -218,14 +237,14 @@ void VisualServoController::track_target(float target_center_x, float target_cen
     }
 
     // 使用更激进的速度倍数，实现rush效果
-    float speed_multiplier = 2.0f;  // 进一步增加速度
+    float speed_multiplier = 4.0f;  // 大幅增加速度
     vx *= speed_multiplier;
     vy *= speed_multiplier;
 
-    // 确保最小移动速度 - 提高最小速度
+    // 确保最小移动速度 - 极限提高最小速度
     float total_speed = std::sqrt(vx * vx + vy * vy);
-    if (total_speed > 1 && total_speed < 20) {  // 降低触发阈值，提高最大速度
-        float scale = 20.0f / total_speed;  // 提高最小速度
+    if (total_speed > 1 && total_speed < 40) {  // 大幅提高最大速度
+        float scale = 40.0f / total_speed;  // 极限提高最小速度
         vx *= scale;
         vy *= scale;
     }
@@ -237,8 +256,8 @@ void VisualServoController::track_target(float target_center_x, float target_cen
     // 创建速度向量并限制范围
     OmniKinematics::VelocityVector vel(vx, vy, omega);
 
-    // 简化的执行逻辑
-    if (std::abs(vx) > 0.1 || std::abs(vy) > 0.1 || std::abs(omega) > 0.05) {
+    // 简化的执行逻辑（降低触发阈值提高灵敏度）
+    if (std::abs(vx) > 0.05 || std::abs(vy) > 0.05 || std::abs(omega) > 0.02) {
         omni_controller.move_vector(vel);
         std::cout << "执行移动: vx=" << vx << ", vy=" << vy << ", omega=" << omega << std::endl;
     } else {

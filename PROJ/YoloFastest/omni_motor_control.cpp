@@ -258,8 +258,8 @@ float OmniMotorController::speed_to_pwm(float normalized_speed) {
     // 限制输入范围
     normalized_speed = std::max(-1.0f, std::min(1.0f, normalized_speed));
 
-    // 转换到PWM占空比 [0, 100]，使用最大速度的95%以获得更高速度
-    return normalized_speed * 95.0f;
+    // 转换到PWM占空比 [0, 100]，使用100%全功率输出
+    return normalized_speed * 100.0f;
 }
 
 // 全局控制器实例

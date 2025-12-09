@@ -5,7 +5,7 @@
 
 OmniKinematics::OmniKinematics()
     : wheel_radius(0.05f), robot_radius(0.15f), wheel_angle(M_PI/4), // 45度
-      max_linear_speed(1.0f), max_angular_speed(M_PI), // 180度/秒
+      max_linear_speed(2.5f), max_angular_speed(M_PI), // 提高到2.5m/s
       current_mode(STOP), current_velocity(0, 0, 0),
       current_motor_speeds(0, 0, 0) {
 }

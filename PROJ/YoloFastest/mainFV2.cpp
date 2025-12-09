@@ -432,7 +432,7 @@ int main(int argc, char** argv)
         Tbegin = std::chrono::steady_clock::now();
 
         std::vector<TargetBox> boxes;
-        yoloF2.detection(frame, boxes, 0.4);
+        yoloF2.detection(frame, boxes, 0.6);
         draw_objects(frame, boxes);
         Tend = std::chrono::steady_clock::now();
 

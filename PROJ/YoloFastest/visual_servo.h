@@ -37,6 +37,7 @@ private:
     std::vector<float> hand_sizes;        // 手部大小历史
     const int MAX_HISTORY = 10;           // 最大历史记录数
 
+    
     // 手势识别
     bool is_hand_open;        // 手是否张开
     bool is_hand_closed;      // 手是否握紧
