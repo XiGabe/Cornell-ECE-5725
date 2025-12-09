@@ -13,7 +13,7 @@ MOTOR_L_PINS = {'IN1': 17, 'IN2': 6, 'PWM': 26, 'name': 'Left'}
 # 右电机引脚
 MOTOR_R_PINS = {'IN1': 22, 'IN2': 27, 'PWM': 23, 'name': 'Right'}
 #17 6 26
-#20 12 16 ?有问题。电机好像坏了
+#20 12 16
 #22 27 23
 # 全局 PWM 对象
 pwm_L = None

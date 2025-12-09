@@ -232,9 +232,7 @@ void handle_http_request(int new_socket) {
             }
 
             stream_frame_count++;
-            if (stream_frame_count % 30 == 0) {
-                std::cout << "Streamed " << stream_frame_count << " frames" << std::endl;
-            }
+            // Removed frame count logging to reduce console output
 
             usleep(33000); // ~30 FPS
         }

@@ -31,6 +31,18 @@ private:
     float ki_angular;       // 角度控制积分系数
     float kd_angular;       // 角度控制微分系数
 
+    // 跟踪历史
+    std::vector<float> hand_positions_x;  // 手部位置历史
+    std::vector<float> hand_positions_y;
+    std::vector<float> hand_sizes;        // 手部大小历史
+    const int MAX_HISTORY = 10;           // 最大历史记录数
+
+    // 手势识别
+    bool is_hand_open;        // 手是否张开
+    bool is_hand_closed;      // 手是否握紧
+    float last_hand_size;     // 上次手部大小
+    float gesture_threshold;  // 手势识别阈值
+
 public:
     VisualServoController();
     ~VisualServoController();
@@ -54,12 +66,19 @@ public:
     // 跟踪单个目标
     void track_target(float target_x, float target_y, float target_size);
 
+    // 高级跟踪功能
+    void update_hand_history(float x, float y, float size);
+    bool detect_gesture(float current_size);
+    float predict_movement(float& predicted_x, float& predicted_y);
+    void smooth_tracking(float& x, float& y, float alpha = 0.7f);
+
     // 停止所有运动
     void stop_motion();
 
     // 获取状态信息
     bool is_initialized() const { return initialized; }
     void get_status() const;
+    bool get_gesture_status() const { return is_hand_open; }
 };
 
 #endif // VISUAL_SERVO_H_

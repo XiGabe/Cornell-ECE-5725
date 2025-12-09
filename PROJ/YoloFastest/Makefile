@@ -25,21 +25,32 @@ INCLUDES = $(NCNN_INCLUDES) -I/usr/include/opencv4 -I.
 LIBS = $(OPENCV_LIBS) $(NCNN_LIBS) $(WIRINGPI_LIBS) -lgomp -lpthread
 
 # 源文件
-SRCS = mainFV2.cpp yolo-fastestv2.cpp system_monitor.cpp motor_control.cpp visual_servo.cpp
+SRCS = mainFV2.cpp yolo-fastestv2.cpp system_monitor.cpp motor_control.cpp visual_servo.cpp omni_motor_control.cpp omni_kinematics.cpp
+OMNI_SRCS = omni_motor_control.cpp omni_kinematics.cpp test_omni_movement.cpp
 
 # 目标文件
 OBJS = $(SRCS:.cpp=.o)
+OMNI_OBJS = $(OMNI_SRCS:.cpp=.o)
 
 # 可执行文件
 TARGET = mainFV2
+OMNI_TEST = test_omni
 
 # 默认目标
 all: $(TARGET)
 
-# 编译可执行文件
+# 全向轮测试目标
+omni-test: $(OMNI_TEST)
+
+# 编译主程序
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
 	@echo "Compilation successful! Executable: $(TARGET)"
+
+# 编译全向轮测试程序 (不依赖OpenCV和NCNN)
+$(OMNI_TEST): omni_motor_control.o omni_kinematics.o test_omni_movement.o
+	$(CXX) $(CXXFLAGS) -o $(OMNI_TEST) omni_motor_control.o omni_kinematics.o test_omni_movement.o $(WIRINGPI_LIBS) -lpthread
+	@echo "Omni test compilation successful! Executable: $(OMNI_TEST)"
 
 # 编译目标文件
 %.o: %.cpp
@@ -47,8 +58,8 @@ $(TARGET): $(OBJS)
 
 # 清理
 clean:
-	rm -f $(OBJS) $(TARGET)
-	@echo "Cleaned all object files and executable"
+	rm -f $(OBJS) $(OMNI_OBJS) $(TARGET) $(OMNI_TEST)
+	@echo "Cleaned all object files and executables"
 
 # 安装依赖 (Ubuntu/Debian)
 install-deps:
@@ -70,19 +81,39 @@ run: $(TARGET)
 	@echo "Make sure motors are safely supported!"
 	sudo ./$(TARGET)
 
+# 运行全向轮测试
+run-omni: $(OMNI_TEST)
+	@echo "Running OmniWheel Movement Test..."
+	@echo "Make sure the robot is safely supported!"
+	sudo ./$(OMNI_TEST)
+
+# 交互式全向轮测试
+run-omni-interactive: $(OMNI_TEST)
+	@echo "Running Interactive OmniWheel Test..."
+	@echo "Use keyboard commands to control the robot"
+	sudo ./$(OMNI_TEST) interactive
+
 # 调试版本
 debug: CXXFLAGS += -g -DDEBUG
 debug: $(TARGET)
 
+# 全向轮调试版本
+debug-omni: CXXFLAGS += -g -DDEBUG
+debug-omni: $(OMNI_TEST)
+
 # 帮助信息
 help:
 	@echo "Available targets:"
-	@echo "  all         - Compile the project (default)"
-	@echo "  clean       - Remove object files and executable"
-	@echo "  install-deps- Install required dependencies"
-	@echo "  check-deps  - Check if dependencies are installed"
-	@echo "  run         - Compile and run the program"
-	@echo "  debug       - Compile with debug symbols"
-	@echo "  help        - Show this help message"
+	@echo "  all              - Compile the main project (default)"
+	@echo "  omni-test        - Compile omniwheel test program"
+	@echo "  clean            - Remove object files and executables"
+	@echo "  install-deps     - Install required dependencies"
+	@echo "  check-deps       - Check if dependencies are installed"
+	@echo "  run              - Compile and run the main program"
+	@echo "  run-omni         - Compile and run omniwheel test"
+	@echo "  run-omni-interactive - Run interactive omniwheel test"
+	@echo "  debug            - Compile main program with debug symbols"
+	@echo "  debug-omni       - Compile omni test with debug symbols"
+	@echo "  help             - Show this help message"
 
-.PHONY: all clean install-deps check-deps run debug help
+.PHONY: all clean install-deps check-deps run run-omni run-omni-interactive debug debug-omni help omni-test
