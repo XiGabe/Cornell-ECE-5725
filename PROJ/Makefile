@@ -1,5 +1,5 @@
 # Modern C++ Makefile for YOLO Hand Detection & Omni-Wheel Robot Control
-# Author: Generated with Claude Code
+# Author: Hongxi Chen
 # Date: 2025-12-09
 
 # Project configuration

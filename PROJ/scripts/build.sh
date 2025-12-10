@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build script for YOLO Hand Detection System
-# Author: Generated with Claude Code
+# Author: Hongxi Chen
 # Date: 2025-12-09
 
 set -e  # Exit on any error

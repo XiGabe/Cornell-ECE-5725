@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Omni-Wheel Smart Trash Can | ECE 5725</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #0f172a;
+            --accent: #3b82f6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --code-bg: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-color);
+            margin: 0;
+            line-height: 1.7;
+        }
+
+        /* --- Navigation (Glassmorphism) --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            z-index: 1000;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--secondary);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-light);
+            margin-left: 2rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(255,255,255,0) 70%);
+            top: -100px;
+            right: -100px;
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            margin-bottom: 2.5rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4);
+            background-color: var(--primary-dark);
+        }
+
+        .hero-meta {
+            margin-top: 3rem;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* --- Main Content --- */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 80px 2rem;
+        }
+
+        section {
+            margin-bottom: 100px;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.2rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-header h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--primary);
+            margin-top: 8px;
+            border-radius: 2px;
+        }
+
+        /* --- Cards & Grid --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Image Styling --- */
+        figure {
+            margin: 0 0 2rem 0;
+        }
+
+        figure img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        figure img:hover {
+            transform: scale(1.02);
+        }
+
+        figcaption {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.8rem;
+            font-style: italic;
+        }
+
+        /* --- Code Block (Mac Style) --- */
+        .code-window {
+            background: var(--code-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 2rem 0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .window-header {
+            background: #334155;
+            padding: 10px 15px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .keyword { color: #c678dd; }
+        .function { color: #61afef; }
+        .comment { color: #7f8c8d; font-style: italic; }
+        .number { color: #d19a66; }
+
+        /* --- Alert Box --- */
+        .alert {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 2rem 0;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { color: var(--text-light); font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-logo">SmartCan<span style="color:var(--primary)">.AI</span></div>
+        <div class="nav-links">
+            <a href="#intro">Overview</a>
+            <a href="#hardware">Hardware</a>
+            <a href="#software">Software</a>
+            <a href="#results">Results</a>
+            <a href="#team">Team</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Autonomous Omni-Wheel<br>Smart Trash Can</h1>
+            <p>Real-time AI Vision · Omni-Directional Mobility · Visual Servoing</p>
+            <a href="#video" class="btn"><i class="fas fa-play"></i> Watch Demo</a>
+            
+            <div class="hero-meta">
+                <div><i class="fas fa-user"></i> Hongxi Chen (hc2325)</div>
+                <div><i class="fas fa-user"></i> Haoyang Han (hh828)</div>
+                <div><i class="fas fa-calendar"></i> Dec 10, 2025</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <section id="intro">
+            <div class="section-header">
+                <h2>Introduction & Objective</h2>
+            </div>
+            <div class="grid-2">
+                <div>
+                    <h3>The Concept</h3>
+                    <p>Traditional trash cans are passive objects. We asked ourselves: <strong>"Why should you go to the trash can? Why can't the trash can actively come to catch the trash?"</strong></p>
+                    <p>Driven by this idea, we designed an active robotic platform. Our core objective was to validate the feasibility of <strong>Visual Servoing</strong> on a trash can robot—making it <em>see</em> the target and move in <em>real-time</em> to intercept it.</p>
+                </div>
+                <div class="alert">
+                    <h3>🏆 Key Success Criteria</h3>
+                    <ul style="margin:0; padding-left:1.2rem;">
+                        <li><strong>Omni-Motion:</strong> Instant lateral movement (strafing) without turning.</li>
+                        <li><strong>Real-time AI:</strong> High-frame-rate detection (~18 FPS) on Raspberry Pi.</li>
+                        <li><strong>Closed-Loop Control:</strong> A fast "SENSE -> DECIDE -> ACT" loop (~20Hz).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="video">
+            <div class="section-header">
+                <h2>Project Demo</h2>
+            </div>
+            <figure>
+                <div style="aspect-ratio: 16/9; background: #eee; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #888;">
+                    [ YouTube Video Placeholder ]<br>Please embed your final video here
+                </div>
+                <figcaption>Demonstration of Omni-directional movement and Visual Servoing Hand Tracking.</figcaption>
+            </figure>
+        </section>
+
+        <section id="hardware">
+            <div class="section-header">
+                <h2>Hardware Evolution</h2>
+            </div>
+            
+            <div class="card" style="margin-bottom: 2rem;">
+                <h3>Phase 1: The Two-Wheel Limitation</h3>
+                <p>Initially, we prototyped with a standard <strong>2-Wheel Differential Drive</strong> to validate the circuit design. However, testing revealed a fatal flaw: if a target fell to the side, the robot had to <em>turn first, then move forward</em>.</p>
+                <p>This latency was unacceptable for an interception task—it simply couldn't catch anything in time.</p>
+                
+                <figure style="text-align: center;">
+                    <img src="two_wheels.jpg" alt="Two Wheel Prototype" style="max-height: 1000px; width: 550px; border-radius: 8px;">
+                    <figcaption><strong>Prototype v1:</strong> The initial chassis lacked lateral mobility (strafing).</figcaption>
+                </figure>
+            </div>
+
+            <div class="card">
+                <h3>Phase 2: Three-Wheel Omni Upgrade</h3>
+                <p>To achieve true agility, we completely rebuilt the chassis using a <strong>120° Three-Wheel Omni-Directional Layout</strong>. By arranging motors at 120-degree intervals, the robot can move along any vector \( (V_x, V_y) \) instantly, without changing its heading.</p>
+                
+                <div class="grid-2" style="margin-top: 2rem;">
+                    <figure>
+                        <img src="three_wheels_above.jpeg" alt="Electronics Integration">
+                        <figcaption><strong>Top View:</strong> Compact integration of Raspberry Pi 4, L298N drivers, and battery management.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="three_wheels_under.jpeg" alt="Chassis Layout">
+                        <figcaption><strong>Bottom View:</strong> 120° motor layout using 48mm Mecanum wheels for holonomic motion.</figcaption>
+                    </figure>
+                </div>
+                
+                <h4>Precision & Integration</h4>
+                <div class="grid-2">
+                    <div>
+                        <p>We designed custom 3D-printed structural components to ensure mechanical precision.</p>
+                        <p>The <strong>Base Plate</strong> (top image) serves as the main chassis deck, providing a rigid platform.</p>
+                        <p>The <strong>Custom Motor Mount</strong> (bottom image) is critical for performance. It locks motors at exactly 120° angles to ensure kinematic accuracy and reduce vibration.</p>
+                    </div>
+                    <div style="display:flex; gap:15px; flex-direction:column; align-items:center;">
+                        <img src="round_plate.png" alt="3D Printed Base Plate" style="border-radius:8px; width: 80%; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <img src="Motor_Mount.png" alt="3D Printed Motor Mount" style="border-radius:8px; width: 80%; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="software">
+            <div class="section-header">
+                <h2>Software & Algorithm Design</h2>
+            </div>
+            <p>To achieve real-time response on limited hardware, we architected a high-performance C++ system following a strict <strong>SENSE &rarr; DECIDE &rarr; ACT</strong> loop running at ~20Hz.</p>
+
+            <h3>1. SENSE: Edge AI & Multithreading Architecture</h3>
+            <p>Running deep learning on an edge device like the Raspberry Pi 4B is challenging. To achieve real-time performance, we implemented three layers of optimization:</p>
+            
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--accent);">
+                <ul style="margin: 0; padding-left: 1.5rem;">
+                    <li><strong>The Model:</strong> Custom YOLO-FastestV2 trained on Google Colab (Tesla T4) specifically for hands.</li>
+                    <li><strong>Inference Acceleration:</strong> NCNN framework with OpenMP 4-thread parallel acceleration.</li>
+                    <li><strong>Hardware Overclocking:</strong> CPU boosted from 1.5GHz to 2.0GHz with active cooling.</li>
+                </ul>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <h4>Pipeline Optimization (Code)</h4>
+                    <p>We decoupled the system into parallel threads to prevent the heavy detection loop from blocking motor control.</p>
+                    <div class="code-window" style="margin-top: 10px;">
+                        <div class="window-header"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                        <pre><code># /boot/config.txt
+over_voltage=6
+arm_freq=2000  <span class="comment"># Overclock to 2.0GHz</span>
+
+<span class="comment">// src/main.cpp - Parallel Threads</span>
+std::thread server_thread(http_server);
+yoloF2.init(false); 
+net.opt.num_threads = 4; <span class="comment">// NCNN OpenMP</span></code></pre>
+                    </div>
+                </div>
+                <div>
+                    <h4>Training Result</h4>
+                    <p>The custom model achieves high confidence even in complex backgrounds.</p>
+                    <figure>
+                        <img src="hand.png" alt="YOLO Detection Result" style="max-height: 250px; width: 100%; object-fit: cover;">
+                        <figcaption><strong>Result:</strong> Stable 18 FPS tracking with >98% confidence.</figcaption>
+                    </figure>
+                </div>
+            </div>
+
+            <h3>2. DECIDE: Visual Servoing (PID)</h3>
+            <p>We use Image-Based Visual Servoing (IBVS). The logic isn't just "move to center," but involves coordinate transformation and dynamic speed adjustment.</p>
+            
+            <div class="grid-2">
+                <div>
+                    <h4>Coordinate & "Rush" Logic</h4>
+                    <p>The camera faces upward, requiring coordinate inversion. We also tuned the PID with an aggressive P-term for a "Rush Effect".</p>
+                    <div class="code-window">
+                        <pre><code><span class="comment">// src/vision/visual_servo.cpp</span>
+float error_x = target_x - smooth_x;
+float error_y = smooth_y - target_y;
+
+<span class="comment">// Aggressive P-control for "Rush" effect</span>
+<span class="keyword">float speed_multiplier = 4.0f;</span> 
+vx *= speed_multiplier;
+vy *= speed_multiplier;</code></pre>
+                    </div>
+                </div>
+                <div>
+                    <h4>Control Strategy</h4>
+                    <ul style="margin-top: 1rem;">
+                        <li><strong>Input:</strong> Pixel error vector \((E_x, E_y)\).</li>
+                        <li><strong>Output:</strong> Velocity vector \((V_x, V_y)\).</li>
+                        <li><strong>Stability:</strong> Adaptive Dead Zone (15-35px) prevents motor jitter when the target is locked.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>3. ACT: The "Engineering Hack"</h3>
+            <div class="alert">
+                <strong>🚨 The Challenge:</strong> We combined <strong>Mecanum wheels (45° rollers)</strong> with a <strong>120° Omni-layout</strong>. 
+                <br>Physics dictated that lateral forces \( F_x \) would generate an unwanted torque \( \tau \), causing the robot to spin uncontrollably while trying to move straight.
+            </div>
+            
+            <div class="grid-2">
+                <div>
+                    <p><strong>💡 The Solution:</strong> Instead of rebuilding the chassis, we derived a software compensation matrix. We injected a <strong>1.5x gain</strong> and inverted the vector to forcefully cancel the rotation.</p>
+                    <p>This "Software Trim" effectively patched the hardware limitation, allowing perfectly straight movement.</p>
+                </div>
+                <div class="code-window" style="margin: 0;">
+                    <div class="window-header"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                    <pre><code><span class="comment">// src/control/kinematics.cpp</span>
+float v1 = cos(240°)*vx + sin(240°)*vy;
+float v2 = cos(120°)*vx + sin(120°)*vy;
+float v3 = cos(0°)*vx   + sin(0°)*vy;
+
+<span class="comment">// Software Trim to fix Physical Drift</span>
+speeds.m1 =  v1 / max_spd;
+speeds.m2 = -v2 / max_spd; 
+<span class="keyword">speeds.m3</span> = <span class="number">-v3 * 1.5f</span> / max_spd; <span class="comment">// The Hack</span></code></pre>
+                </div>
+            </div>
+
+            <h3>4. Headless Web Dashboard</h3>
+            <div class="grid-2" style="align-items: center;">
+                <div>
+                    <p>Debugging a moving robot requires wireless monitoring. We built a lightweight <strong>C++ HTTP Server</strong> that streams MJPEG video and system stats (CPU/Temp) to any browser.</p>
+                    <ul style="font-size: 0.95rem; color: var(--text-light);">
+                        <li><strong>Zero-Copy Streaming:</strong> Direct memory buffer to socket.</li>
+                        <li><strong>Low Latency:</strong> &lt;50ms lag (vs 200ms+ with Python Flask).</li>
+                        <li><strong>Safety:</strong> Real-time thermal monitoring for overclocked CPU.</li>
+                    </ul>
+                </div>
+                <figure style="margin: 0;">
+                    <img src="web_dashboard.png" alt="Web Control Dashboard" style="border: 1px solid #ddd; border-radius: 8px; width: 100%;">
+                    <figcaption><strong>System Monitor:</strong> Real-time YOLO feed & Thermal stats.</figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section id="results">
+            <div class="section-header">
+                <h2>Project Roadmap & Results</h2>
+            </div>
+            <p>Our development followed a strict iterative path. Even though we are currently tracking a <strong>"Hand"</strong> instead of trash, this perfectly validates our core logic: Omni-motion is smooth, and PID control is stable.</p>
+
+            <div class="roadmap-grid">
+                
+                <div class="roadmap-card completed">
+                    <div class="badge-done">✅ COMPLETED</div>
+                    <h3>Prototype 1: The Brain</h3>
+                    <p class="subtitle">2-Wheel "Follow Hand" Car</p>
+                    <p class="goal"><strong>Goal:</strong> Validate the core "detect-track" algorithm loop.</p>
+                    <ul class="task-list">
+                        <li class="done">Train "Hand" Detection Model (90 mAP)</li>
+                        <li class="done">Assemble 2-Wheel Differential Chassis</li>
+                        <li class="done">Implement PID controller code</li>
+                        <li class="done">Optimize RPi performance (~18 FPS)</li>
+                        <li class="done">Headless OS & HTTP monitor stream</li>
+                        <li class="done">System Integration & Tuning</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-card completed main-achievement">
+                    <div class="badge-done">✅ COMPLETED</div>
+                    <h3>Prototype 2: The Body</h3>
+                    <p class="subtitle">Omni-Wheel "Follow Hand" Chassis</p>
+                    <p class="goal"><strong>Goal:</strong> Upgrade mobility to solve lateral movement issues.</p>
+                    <ul class="task-list">
+                        <li class="done">Design 3-wheel omni-directional chassis</li>
+                        <li class="done">Port "follow-hand" algo to omni-drive</li>
+                        <li class="done"><strong>Achievement:</strong> Solved Mecanum physics conflict via software hack.</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-card future">
+                    <div class="badge-future">🚀 FUTURE WORK</div>
+                    <h3>Prototype 3: The Target</h3>
+                    <p class="subtitle">Omni-Wheel "Follow Trash"</p>
+                    <p class="goal"><strong>Goal:</strong> Transition from tracking "hand" to "trash".</p>
+                    <ul class="task-list">
+                        <li>Train YOLO model for trash items (cans/paper)</li>
+                        <li>Deploy new model to Raspberry Pi</li>
+                        <li>Use high-performance motors</li>
+                        <li>Optimize servoing for falling object speed</li>
+                    </ul>
+                </div>
+
+                <div class="roadmap-card future">
+                    <div class="badge-future">🔮 LONG TERM</div>
+                    <h3>Prototype 4: The Product</h3>
+                    <p class="subtitle">Integrated "Smart Can"</p>
+                    <p class="goal"><strong>Goal:</strong> Evolve from lab prototype to product.</p>
+                    <ul class="task-list">
+                        <li>Integrate chassis inside a trash can enclosure</li>
+                        <li>Implement final power management</li>
+                        <li>Aesthetic improvements & stabilization</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <style>
+                .roadmap-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                    gap: 1.5rem;
+                    margin-top: 2rem;
+                }
+
+                .roadmap-card {
+                    background: #fff;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    border: 1px solid #e2e8f0;
+                    position: relative;
+                    transition: transform 0.3s ease;
+                }
+
+                .roadmap-card.completed {
+                    border-left: 5px solid #10b981;
+                    background: linear-gradient(to bottom right, #ffffff, #f0fdf4);
+                    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+                }
+                
+                .roadmap-card.main-achievement {
+                    transform: scale(1.02);
+                    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+                    border: 2px solid #10b981;
+                }
+
+                .roadmap-card.future {
+                    border-left: 5px solid #94a3b8;
+                    background: #f8fafc;
+                    opacity: 0.9;
+                    border: 1px dashed #cbd5e1;
+                }
+
+                .roadmap-card h3 {
+                    margin: 0.5rem 0 0 0;
+                    font-size: 1.25rem;
+                    color: #1e293b;
+                }
+
+                .subtitle {
+                    color: #64748b;
+                    font-weight: 600;
+                    margin-bottom: 1rem;
+                    font-size: 0.9rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+
+                .goal {
+                    font-size: 0.95rem;
+                    background: rgba(0,0,0,0.03);
+                    padding: 0.5rem;
+                    border-radius: 6px;
+                    margin-bottom: 1rem;
+                }
+
+                .badge-done {
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: #dcfce7;
+                    color: #15803d;
+                    font-size: 0.75rem;
+                    padding: 4px 8px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                }
+
+                .badge-future {
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: #f1f5f9;
+                    color: #64748b;
+                    font-size: 0.75rem;
+                    padding: 4px 8px;
+                    border-radius: 20px;
+                    font-weight: bold;
+                }
+
+                .task-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .task-list li {
+                    position: relative;
+                    padding-left: 1.5rem;
+                    margin-bottom: 0.5rem;
+                    font-size: 0.9rem;
+                    color: #475569;
+                }
+
+                .task-list li::before {
+                    content: '⬜';
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    font-size: 0.8rem;
+                }
+
+                .task-list li.done {
+                    color: #0f172a;
+                }
+
+                .task-list li.done::before {
+                    content: '✅';
+                }
+            </style>
+        </section>
+
+        <section id="bom">
+            <h2>Bill of Materials</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Quantity</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Mecanum Wheel Kit (48mm)</td><td>2 Pairs</td><td>$18.01</td></tr>
+                    <tr><td>GeeekPi Fan Heatsink Kit</td><td>1 Set</td><td>$9.70</td></tr>
+                    <tr><td>USB Webcam (Borrowed)</td><td>1</td><td>~$6.00</td></tr>
+                    <tr><td>Raspberry Pi 4B</td><td>1</td><td>Lab Stock</td></tr>
+                    <tr><td>L298N Motor Drivers</td><td>2</td><td>Lab Stock</td></tr>
+                    <tr><td>TT DC Motors</td><td>3</td><td>Lab Stock</td></tr>
+                    <tr><td>Base Plate</td><td>1</td><td>3D-Printed (free)</td></tr>
+                    <tr><td>Custom Motor Mount</td><td>1</td><td>3D-Printed (free)</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="team">
+            <h2>Code & References</h2>
+            <p><strong>Code Repository:</strong> <a href="https://github.com/XiGabe/Cornell-ECE-5725/tree/main/PROJ" target="_blank" style="color:var(--primary)">GitHub - XiGabe/Cornell-ECE-5725</a></p>
+            
+            <p><strong>References:</strong></p>
+            <ul style="font-size:0.9rem; color:var(--text-light);">
+                <li>Inspiration: <a href="https://youtu.be/H0XYANRosVo?si=pOcXCYsrCMDpJZIA" target="_blank" style="color:var(--accent); text-decoration:none;">Automatic Trash Can Project (YouTube)</a></li>
+                <li>Model: <a href="https://github.com/Qengineering/YoloFastestV2-ncnn-Raspberry-Pi-4" target="_blank" style="color:var(--accent); text-decoration:none;">YoloFastestV2-ncnn-Raspberry-Pi-4 (Qengineering)</a></li>
+                <li>Framework: <a href="https://github.com/Tencent/ncnn" target="_blank" style="color:var(--accent); text-decoration:none;">Tencent NCNN</a></li>
+                <li>Model training Notebook: <a href="https://colab.research.google.com/drive/1vDj3tb9JLkJpzqFmL1Xf63y3O6_vqfHP?usp=sharing" target="_blank" style="color:var(--accent); text-decoration:none;">Google Colab (YOLO Training)</a></li>
+                <li>3D model file: <a href="https://www.printables.com/model/552244-sparky-tt-motor-mounts" target="_blank" style="color:var(--accent); text-decoration:none;">Mounting brackets for “tt motors</a></li>
+                <li>Safe Overclocking: <a href="https://qengineering.eu/overclocking-the-raspberry-pi-4.html" target="_blank" style="color:var(--accent); text-decoration:none;">Safe overclocking of the Raspberry Pi 4 to 2 GHz</a></li>
+                <li>Tools: 
+                    <a href="https://opencv.org/" target="_blank" style="color:var(--accent); text-decoration:none;">OpenCV</a>, 
+                    <a href="http://wiringpi.com/" target="_blank" style="color:var(--accent); text-decoration:none;">WiringPi</a>, 
+                    <a href="https://gemini.google.com/" target="_blank" style="color:var(--accent); text-decoration:none;">Google Gemini</a> & 
+                    <a href="https://claude.ai/" target="_blank" style="color:var(--accent); text-decoration:none;">Claude</a> (for code optimization).
+                </li>
+            </ul>
+
+            <div style="margin-top: 3rem; border-top: 1px solid #eee; padding-top: 2rem;">
+                <h3 style="text-align: center; margin-bottom: 1.5rem;">Team Contributions & Makers</h3>
+                
+                <div class="team-container">
+                    <div class="team-member left">
+                        <p class="name">Haoyang Han</p>
+                        <p class="role">Hardware Design, 3D Modeling, Circuitry, Assembly</p>
+                    </div>
+                    
+                    <figure class="team-photo">
+                        <img src="photo.jpg" alt="Team Member Photo" style="border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 250px; width: auto;">
+                        <figcaption>Left: Haoyang Han | Right: Hongxi Chen</figcaption>
+                    </figure>
+                    
+                    <div class="team-member right">
+                        <p class="name">Hongxi Chen</p>
+                        <p class="role">Software Architecture, YOLO Training, NCNN Opt, PID Control, Web Server</p>
+                    </div>
+                </div>
+
+                <style>
+                    .team-container {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 2rem;
+                        flex-wrap: wrap; /* 小屏幕自动换行 */
+                    }
+
+                    .team-member {
+                        flex: 1; /* 左右两侧平分空间 */
+                        min-width: 200px; /* 防止过窄 */
+                        font-size: 0.95rem;
+                        color: var(--text-light);
+                    }
+
+                    .team-member.left {
+                        text-align: right; /* 左侧文字靠右对齐，指向照片 */
+                    }
+
+                    .team-member.right {
+                        text-align: left; /* 右侧文字靠左对齐，指向照片 */
+                    }
+
+                    .team-member .name {
+                        font-weight: 700;
+                        font-size: 1.1rem;
+                        color: var(--secondary);
+                        margin-bottom: 0.3rem;
+                    }
+
+                    .team-member .role {
+                        margin: 0;
+                        line-height: 1.4;
+                    }
+
+                    .team-photo {
+                        margin: 0;
+                        flex-shrink: 0; /* 防止照片被压缩 */
+                        text-align: center;
+                    }
+
+                    /* 小屏幕适配 */
+                    @media (max-width: 768px) {
+                        .team-container {
+                            flex-direction: column;
+                            text-align: center;
+                        }
+                        .team-member.left, .team-member.right {
+                            text-align: center;
+                            order: 2; /* 文字排到照片下面 */
+                        }
+                        .team-photo {
+                            order: 1; /* 照片排到最上面 */
+                            margin-bottom: 1.5rem;
+                        }
+                    }
+                </style>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
